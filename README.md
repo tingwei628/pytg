@@ -1,2 +1,2 @@
-# tbg-py
+# pytg
 terminal based game in python
