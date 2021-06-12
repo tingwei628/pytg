@@ -7,3 +7,4 @@ terminal based game in python
 ## Feature
 - [Snake]()
 - [Tetris]()
+- [Bad apple]()
