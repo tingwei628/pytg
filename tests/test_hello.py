@@ -1,4 +1,4 @@
-from p1.hello import hello
+from src.module_1.hello import hello
 
 
 def test_hello():

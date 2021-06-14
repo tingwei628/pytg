@@ -3,6 +3,12 @@ name = "pytg"
 version = "0.1.0"
 description = ""
 authors = ["tingwei628"]
+repository = "https://github.com/tingwei628/pytg"
+packages = [
+    # { include = "src" },
+    { include = "module_1", from = "src" }, # module_1 in src/
+]
+# exclude = ["tests/"]
 
 [tool.poetry.dependencies]
 python = "^3.8"

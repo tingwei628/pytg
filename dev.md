@@ -37,36 +37,41 @@ poetry env remove [virtual_env_name]
 ## Test
 
 ```
-sample_package/
-├── __init__.py
-├── sample_module.py
-└── sample_module_import.py
+pytest
 ```
 
+## Publish
+
+- local build 
 ```
-import [module]
+poetry build
+```
+- local publish to GitHub repo
+```
+poetry config repositories.[my_repository_name] https://github.com/tingwei628/[my_repository_name].git
+
+
+// set env in .poetry env and source env !!
+export POETRY_USERNAME=[your_username]
+export POETRY_PASSWORD=[your_github_personal_access_token]
+
+poetry config http-basic.[my_repository_name] $POETRY_USERNAME $POETRY_PASSWORD
+poetry publish -r [my_repository_name]
 ```
 
+- install from GitHub
 ```
-from [module] import [name1, name2, ...]
+poetry add git+https://github.com/tingwei628/[my_python_package].git@v[version_number]
+```
+or
+```
+pip install git+ssh://git@github.com/tingwei628/[my_python_package].git@v[version_number]
 ```
 
-```
-package
-├── __init__.py
-├── subpackage1
-│   ├── __init__.py
-│   ├── moduleX.py
-│   └── moduleY.py
-├── subpackage2
-│   ├── __init__.py
-│   └── moduleZ.py
-└── moduleA.py
-```
+## CI/CD
+- GitHub Actions (Lint/Format/Test/Build/Publish)
 
 
 ### Reference
-- [Python projects with Poetry and VSCode. Part 1](https://www.pythoncheatsheet.org/blogpython-projects-with-poetry-and-vscode-part-1/)
 
-- [Python projects with Poetry and VSCode. Part 3](https://www.pythoncheatsheet.org/blog/python-projects-with-poetry-and-vscode-part-3/)
 
