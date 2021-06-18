@@ -57,6 +57,8 @@ export POETRY_PASSWORD=[your_github_personal_access_token]
 
 poetry config http-basic.[my_repository_name] $POETRY_USERNAME $POETRY_PASSWORD
 poetry publish -r [my_repository_name]
+
+// after publishing it, i can't find my package (?) on my repo.
 ```
 
 - install from GitHub
@@ -69,7 +71,19 @@ pip install git+ssh://git@github.com/tingwei628/[my_python_package].git@v[versio
 ```
 
 ## CI/CD
-- GitHub Actions (Lint/Format/Test/Build/Publish)
+- GitHub Actions (Lint/Format/Test/Build/Publish/Deploy to Docker(?))
+
+on: push (branch: main, path: src/ or tests/ or pyproject.toml)
+how not to preinstall package each time and cache it ?
+
+how to run job on different runner at the same time ?
+
+- git tag
+```
+git tag -a [tag_name] -m [tag_message]
+git push origin [tag_name]
+
+```
 
 
 ### Reference
