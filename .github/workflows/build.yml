@@ -12,8 +12,8 @@ on:
       - 'src/**/*.py'
       - 'tests/**/*.py'
       - '*.py'
+      - '!*.md'
       # exclude files, start with !
-      - '!**.md'
 
 jobs:
   package-pytg:
