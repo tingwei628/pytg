@@ -42,6 +42,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      - name: Checkout code
       - uses: actions/checkout@v2
 
       - name: Setup Python ${{ matrix.python-version }}
@@ -71,8 +72,8 @@ jobs:
           poetry config virtualenvs.path ~/.cache/pypoetry
 
       - name: Install dependencies
-        run: poetry install
         if: steps.cache.outputs.cache-hit != 'true'
+        run: poetry install
 
       # - name: Lint
       #   run: |
