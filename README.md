@@ -1,7 +1,7 @@
 # pytg
 terminal based game in python
 
-[GitHub actions badage]()
+[![build](https://github.com/tingwei628/pytg/actions/workflows/build.yml/badge.svg)](https://github.com/tingwei628/pytg/actions/workflows/build.yml)
 
 ## Feature
 - [Snake]()
