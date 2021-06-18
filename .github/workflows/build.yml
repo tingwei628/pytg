@@ -3,9 +3,9 @@ name: build
 on:
   push:
   pull_request:
-    types:
-      - opened
-      - synchronize
+    # types:
+    #   - opened
+    #   - synchronize
     branches:
       - main
     paths:
