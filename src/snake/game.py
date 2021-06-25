@@ -3,7 +3,9 @@ from random import randint
 from curses import textpad
 
 """
-1. Game restart/pause/resume/exit
+1. restart (ENTER)
+   pause/resume (SPACE)
+   exit (ESC)
 2. A* algorithm
 
 
@@ -206,9 +208,9 @@ def update_score(score, screen_width_mid, stdscr):
     stdscr.addstr(1, screen_width_mid - len(score_text) // 2, score_text)
 
 
-def snake():
+def snake_entry():
     curses.wrapper(game)
 
 
 if __name__ == "__main__":
-    snake()
+    snake_entry()

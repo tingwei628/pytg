@@ -5,8 +5,8 @@ description = ""
 authors = ["tingwei628"]
 repository = "https://github.com/tingwei628/pytg"
 packages = [
-    # { include = "src" },
-    { include = "snake", from = "src" }, # snake in src/
+    { include = "src"}
+    # { include = "snake", from = "src" }, # snake in src/
 ]
 # exclude = ["tests/"]
 
