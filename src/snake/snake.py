@@ -3,7 +3,7 @@ from random import randint
 from curses import textpad
 
 """
-1. Game restart/pause/exit
+1. Game restart/pause/resume/exit
 2. A* algorithm
 
 
@@ -26,7 +26,7 @@ def game(stdscr):
     screen_width_mid = screen_width // 2
     box_top_left = (box_top_left_x, box_top_left_y)  # (y, x)
     box_bottom_right = (screen_height - box_top_left[0], screen_width - box_top_left[1])
-    # box = [box_start, box_end]
+    box = (box_bottom_right[0] - box_top_left[0], box_bottom_right[1] - box_top_left[1])  # box height, width
     textpad.rectangle(stdscr, box_top_left[0], box_top_left[1], box_bottom_right[0], box_bottom_right[1])
 
     # snake body
@@ -55,32 +55,43 @@ def game(stdscr):
             key = snake_head_dir
 
         snake_head = snake_body[-1]
-        # snake_head_next = ()
         if key == curses.KEY_RIGHT and snake_head_dir != curses.KEY_LEFT:
-            x = (
+            snake_head_next_x = (
                 (box_top_left[1] + snake_step)
-                if (snake_head[1] + snake_step - box_top_left[1]) % box_bottom_right[1] == 0
+                if (snake_head[1] + snake_step - box_top_left[1]) == box[1]
                 else snake_head[1] + snake_step
             )
-            snake_head_next = (
-                snake_head[0],
-                x,
-            )
+            snake_head_next = (snake_head[0], snake_head_next_x)
             append_snake(stdscr, snake_body, snake_head_next)
             snake_head_dir = key
             # update_score(key, screen_width, stdscr)
         elif key == curses.KEY_LEFT and snake_head_dir != curses.KEY_RIGHT:
-            snake_head_next = (snake_head[0], snake_head[1] - snake_step)
+            snake_head_next_x = (
+                (box_bottom_right[1] - snake_step)
+                if (snake_head[1] - snake_step - box_top_left[1]) == 0
+                else snake_head[1] - snake_step
+            )
+            snake_head_next = (snake_head[0], snake_head_next_x)
             append_snake(stdscr, snake_body, snake_head_next)
             snake_head_dir = key
             # update_score(key, screen_width, stdscr)
         elif key == curses.KEY_DOWN and snake_head_dir != curses.KEY_UP:
-            snake_head_next = (snake_head[0] + snake_step, snake_head[1])
+            snake_head_next_y = (
+                (box_top_left[0] + snake_step)
+                if (snake_head[0] + snake_step - box_top_left[0]) == box[0]
+                else snake_head[0] + snake_step
+            )
+            snake_head_next = (snake_head_next_y, snake_head[1])
             append_snake(stdscr, snake_body, snake_head_next)
             snake_head_dir = key
             # update_score(key, screen_width, stdscr)
         elif key == curses.KEY_UP and snake_head_dir != curses.KEY_DOWN:
-            snake_head_next = (snake_head[0] - snake_step, snake_head[1])
+            snake_head_next_y = (
+                (box_bottom_right[0] - snake_step)
+                if (snake_head[0] - snake_step - box_top_left[0]) == 0
+                else snake_head[0] - snake_step
+            )
+            snake_head_next = (snake_head_next_y, snake_head[1])
             append_snake(stdscr, snake_body, snake_head_next)
             snake_head_dir = key
             # update_score(key, screen_width, stdscr)
