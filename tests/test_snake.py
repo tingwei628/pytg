@@ -2,6 +2,6 @@ from src.snake.snake import snake
 
 
 def test_snake():
-    snake()
+    # snake()
     pass
     # assert hello() == 5
