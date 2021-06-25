@@ -170,6 +170,11 @@ def game(stdscr):
             snake_timeout = snake_timeout - len(snake_body) % 90
             stdscr.timeout(snake_timeout)
             """
+        elif snake_head in snake_body[:-1]:
+            stdscr.nodelay(0)
+            snake_status = STOP
+            status_text = "Status: {}".format("OVER ")
+            stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
         else:
             snake_tail = snake_body[0]
             stdscr.addstr(snake_tail[0], snake_tail[1], " ")
