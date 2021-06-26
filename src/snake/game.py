@@ -2,6 +2,7 @@ import curses
 from random import randint
 from curses import textpad
 
+
 """
 1. restart (ENTER)
    pause/resume (SPACE)
@@ -12,6 +13,8 @@ from curses import textpad
 https://stackoverflow.com/questions/44014715/is-it-possible-to-get-the-default-background-color-using-curses-in-python
 
 """
+
+SNAKE_GAME = 1
 
 
 def game(stdscr):
@@ -83,7 +86,11 @@ def game(stdscr):
             stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
             continue
 
-        elif key == KEY_ESC:  # exit to menu
+        elif key == KEY_ESC:  # exit to sub_menu
+            # avoid circular imports...
+            from util.menu import menu_entry
+
+            menu_entry(SNAKE_GAME)
             break
         elif key == KEY_ENTER:
             # screen clear
