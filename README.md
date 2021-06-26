@@ -6,3 +6,8 @@ terminal based game in python
 ## Feature
 - [Snake](https://github.com/tingwei628/pytg/blob/main/src/snake/game.py)
 - Tetris
+
+
+### Acknowledgements
+
+[python-curses-tut@nikhilkumarsingh](https://github.com/nikhilkumarsingh/python-curses-tut)
