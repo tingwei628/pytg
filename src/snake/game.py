@@ -17,7 +17,7 @@ https://stackoverflow.com/questions/44014715/is-it-possible-to-get-the-default-b
 SNAKE_GAME = 1
 
 
-def game(stdscr):
+def _game(stdscr):
 
     # initial setting
     curses.curs_set(0)
@@ -58,11 +58,11 @@ def game(stdscr):
     stdscr.attroff(curses.color_pair(1))
 
     stdscr.attron(curses.color_pair(2))
-    snake_food_pos = create_food(snake_body, box_top_left, box_bottom_right)
+    snake_food_pos = _create_food(snake_body, box_top_left, box_bottom_right)
     stdscr.addstr(snake_food_pos[0], snake_food_pos[1], "O")
     stdscr.attroff(curses.color_pair(2))
     score = 0
-    update_score(score, screen_width_mid, stdscr)
+    _update_score(score, screen_width_mid, stdscr)
 
     game_status = START
     status_text = "Status: {}".format("START")
@@ -115,10 +115,10 @@ def game(stdscr):
             ]
             # score
             score = 0
-            update_score(score, screen_width_mid, stdscr)
+            _update_score(score, screen_width_mid, stdscr)
             # food
             stdscr.attron(curses.color_pair(2))
-            snake_food_pos = create_food(snake_body, box_top_left, box_bottom_right)
+            snake_food_pos = _create_food(snake_body, box_top_left, box_bottom_right)
             stdscr.addstr(snake_food_pos[0], snake_food_pos[1], "O")
             stdscr.attroff(curses.color_pair(2))
             continue
@@ -134,7 +134,7 @@ def game(stdscr):
                 else snake_head[1] + snake_step
             )
             snake_head_next = (snake_head[0], snake_head_next_x)
-            append_snake(stdscr, snake_body, snake_head_next)
+            _append_snake(stdscr, snake_body, snake_head_next)
             snake_head_dir = key
         elif key == curses.KEY_LEFT and snake_head_dir != curses.KEY_RIGHT:
             snake_head_next_x = (
@@ -143,7 +143,7 @@ def game(stdscr):
                 else snake_head[1] - snake_step
             )
             snake_head_next = (snake_head[0], snake_head_next_x)
-            append_snake(stdscr, snake_body, snake_head_next)
+            _append_snake(stdscr, snake_body, snake_head_next)
             snake_head_dir = key
         elif key == curses.KEY_DOWN and snake_head_dir != curses.KEY_UP:
             snake_head_next_y = (
@@ -152,7 +152,7 @@ def game(stdscr):
                 else snake_head[0] + snake_step
             )
             snake_head_next = (snake_head_next_y, snake_head[1])
-            append_snake(stdscr, snake_body, snake_head_next)
+            _append_snake(stdscr, snake_body, snake_head_next)
             snake_head_dir = key
         elif key == curses.KEY_UP and snake_head_dir != curses.KEY_DOWN:
             snake_head_next_y = (
@@ -161,7 +161,7 @@ def game(stdscr):
                 else snake_head[0] - snake_step
             )
             snake_head_next = (snake_head_next_y, snake_head[1])
-            append_snake(stdscr, snake_body, snake_head_next)
+            _append_snake(stdscr, snake_body, snake_head_next)
             snake_head_dir = key
         else:
             continue
@@ -169,11 +169,11 @@ def game(stdscr):
         snake_head = snake_body[-1]
         if snake_head == snake_food_pos:
             stdscr.attron(curses.color_pair(2))
-            snake_food_pos = create_food(snake_body, box_top_left, box_bottom_right)
+            snake_food_pos = _create_food(snake_body, box_top_left, box_bottom_right)
             stdscr.addstr(snake_food_pos[0], snake_food_pos[1], "O")
             stdscr.attroff(curses.color_pair(2))
             score += 1
-            update_score(score, screen_width_mid, stdscr)
+            _update_score(score, screen_width_mid, stdscr)
             # increase speed of snake
             """
             snake_timeout = snake_timeout - len(snake_body) % 90
@@ -190,7 +190,7 @@ def game(stdscr):
             snake_body.pop(0)
 
 
-def create_food(snake_body, box_top_left, box_bottom_right):
+def _create_food(snake_body, box_top_left, box_bottom_right):
     food = ()  # empty food (y, x)
     while food == ():
         food = (
@@ -203,20 +203,20 @@ def create_food(snake_body, box_top_left, box_bottom_right):
             food = ()
 
 
-def append_snake(stdscr, snake_body, snake_head_next):
+def _append_snake(stdscr, snake_body, snake_head_next):
     stdscr.attron(curses.color_pair(1))
     stdscr.addstr(snake_head_next[0], snake_head_next[1], "|")
     snake_body.append(snake_head_next)
     stdscr.attroff(curses.color_pair(1))
 
 
-def update_score(score, screen_width_mid, stdscr):
+def _update_score(score, screen_width_mid, stdscr):
     score_text = "Score: {}".format(score)
     stdscr.addstr(1, screen_width_mid - len(score_text) // 2, score_text)
 
 
 def snake_entry():
-    curses.wrapper(game)
+    curses.wrapper(_game)
 
 
 if __name__ == "__main__":
