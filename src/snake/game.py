@@ -64,24 +64,24 @@ def game(stdscr):
     score = 0
     update_score(score, screen_width_mid, stdscr)
 
-    snake_status = START
+    game_status = START
     status_text = "Status: {}".format("START")
     stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
 
     while 1:
         key = stdscr.getch()
 
-        if snake_status == START and key == KEY_SPACE:
+        if game_status == START and key == KEY_SPACE:
             stdscr.nodelay(0)
-            snake_status = STOP
+            game_status = STOP
             status_text = "Status: {}".format("STOP ")
             stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
             continue
 
-        elif snake_status == STOP and key == KEY_SPACE:
+        elif game_status == STOP and key == KEY_SPACE:
             stdscr.nodelay(1)
             stdscr.timeout(snake_timeout)
-            snake_status = START
+            game_status = START
             status_text = "Status: {}".format("START")
             stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
             continue
@@ -100,7 +100,7 @@ def game(stdscr):
             snake_timeout = INITIAL_TIMEOUT
             stdscr.timeout(snake_timeout)
             # status
-            snake_status = START
+            game_status = START
             status_text = "Status: {}".format("START")
             stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
             # snake direction
@@ -181,7 +181,7 @@ def game(stdscr):
             """
         elif snake_head in snake_body[:-1]:
             stdscr.nodelay(0)
-            snake_status = STOP
+            game_status = STOP
             status_text = "Status: {}".format("OVER ")
             stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
         else:

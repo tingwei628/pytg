@@ -1,4 +1,5 @@
 from snake.game import snake_entry
+from tetris.game import tetris_entry
 import curses
 
 NO_GAME = 0
@@ -55,6 +56,10 @@ def menu(stdscr, which_game):
         elif key == KEY_ENTER and menu_stage == SUB_MENU_STAGE and sub_menu_current_index == sub_menu.index("Snake"):
             stdscr.clear()
             snake_entry()
+            break
+        elif key == KEY_ENTER and menu_stage == SUB_MENU_STAGE and sub_menu_current_index == sub_menu.index("Tetris"):
+            stdscr.clear()
+            tetris_entry()
             break
         elif key == KEY_ENTER and menu_current_index == menu_exit_idx and menu_stage == MENU_STAGE:
             break
