@@ -10,7 +10,7 @@ python src/main.py
 ```
 
 ## Feature
-- [Snake](https://github.com/tingwei628/pytg/blob/main/src/snake/game.py)
+- Snake
 - Tetris
 
 ## Demo

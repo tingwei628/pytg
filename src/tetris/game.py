@@ -28,9 +28,52 @@ def game(stdscr):
     box = (box_bottom_right[0] - box_top_left[0], box_bottom_right[1] - box_top_left[1])  # box height, width
     textpad.rectangle(stdscr, box_top_left[0], box_top_left[1], box_bottom_right[0], box_bottom_right[1])
 
+    # define color in rainbow order
+    curses.init_color(11, *rgb_255_to_1000((255, 0, 0)))  # RED
+    curses.init_color(12, *rgb_255_to_1000((255, 165, 0)))  # ORANGE
+    curses.init_color(13, *rgb_255_to_1000((255, 255, 0)))  # YELLOW
+    curses.init_color(14, *rgb_255_to_1000((0, 128, 0)))  # GREEN
+    curses.init_color(15, *rgb_255_to_1000((0, 0, 255)))  # BLUE
+    curses.init_color(16, *rgb_255_to_1000((75, 0, 130)))  # INDIGO
+    curses.init_color(17, *rgb_255_to_1000((238, 130, 238)))  # VIOLET
+
+    # set color pair
+    curses.init_pair(11, 11, 11)  # RED
+    curses.init_pair(12, 12, 12)  # ORANGE
+    curses.init_pair(13, 13, 13)  # YELLOW
+    curses.init_pair(14, 14, 14)  # GREEN
+    curses.init_pair(15, 15, 15)  # BLUE
+    curses.init_pair(16, 16, 16)  # INDIGO
+    curses.init_pair(17, 17, 17)  # VIOLET
+
+    # curses.init_pair(2, curses.COLOR_RED, curses.COLOR_RED)
+    stdscr.attron(curses.color_pair(13))
     game_status = START
-    status_text = "Status: {}".format("START")
-    stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
+    # status_text = "Status: {}".format("START")
+    # stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
+    stdscr.attroff(curses.color_pair(13))
+
+    # stdscr.attron(curses.color_pair(11))
+    # stdscr.addstr(3, 1, " ")
+    # stdscr.attroff(curses.color_pair(11))
+    # stdscr.attron(curses.color_pair(12))
+    # stdscr.addstr(3, 2, " ")
+    # stdscr.attroff(curses.color_pair(12))
+    # stdscr.attron(curses.color_pair(13))
+    # stdscr.addstr(3, 3, " ")
+    # stdscr.attroff(curses.color_pair(13))
+    # stdscr.attron(curses.color_pair(14))
+    # stdscr.addstr(3, 4, " ")
+    # stdscr.attroff(curses.color_pair(14))
+    # stdscr.attron(curses.color_pair(15))
+    # stdscr.addstr(3, 5, " ")
+    # stdscr.attroff(curses.color_pair(15))
+    # stdscr.attron(curses.color_pair(16))
+    # stdscr.addstr(3, 6, " ")
+    # stdscr.attroff(curses.color_pair(16))
+    # stdscr.attron(curses.color_pair(17))
+    # stdscr.addstr(3, 7, " ")
+    # stdscr.attroff(curses.color_pair(17))
 
     while 1:
         key = stdscr.getch()
@@ -85,6 +128,11 @@ def game(stdscr):
             # stdscr.addstr(snake_food_pos[0], snake_food_pos[1], "O")
             # stdscr.attroff(curses.color_pair(2))
             continue
+
+
+# rgb 255 to 1000 curses color
+def rgb_255_to_1000(rgb_tuple: tuple) -> tuple:
+    return tuple(rgb * 1000 // 255 for rgb in rgb_tuple)
 
 
 def tetris_entry():
