@@ -45,6 +45,13 @@ def _game(stdscr):
     box = (box_bottom_right[0] - box_top_left[0], box_bottom_right[1] - box_top_left[1])  # box height, width
     # textpad.rectangle(stdscr, box_top_left[0], box_top_left[1], box_bottom_right[0], box_bottom_right[1])
     _rectangle(stdscr, box_top_left[0], box_top_left[1], box_bottom_right[0], box_bottom_right[1])
+
+    # define box inside
+    # box_in_top_left[0] <= y <= box_in_bottom_right[0]
+    # box_in_top_left[1] <= x <= box_in_bottom_right[1]
+    box_in_top_left = (box_top_left[0] + 1, box_top_left[1] + 1)  # y, x
+    box_in_bottom_right = (box_bottom_right[0] - 1, box_bottom_right[1] - 1)  # y, x
+
     # define color in rainbow order
     curses.init_color(11, *_rgb_255_to_1000((255, 0, 0)))  # RED
     curses.init_color(12, *_rgb_255_to_1000((255, 165, 0)))  # ORANGE
@@ -72,6 +79,22 @@ def _game(stdscr):
     game_status = START
 
     block_dir = -1  # nothing
+    # block_stack = [
+    #     [(0, curses.COLOR_BLACK), (0, curses.COLOR_BLACK)]
+    #     [(0, curses.COLOR_BLACK), (0, curses.COLOR_BLACK)]
+    #     [(0, curses.COLOR_BLACK), (0, curses.COLOR_BLACK)]
+    # ]
+    BLOCK_EMPTY = 0
+    BLOCK_FILLED = 1
+
+    block_stack = [
+        [
+            (_block_y, _block_x, BLOCK_EMPTY, curses.COLOR_BLACK)
+            for _block_x in range(box_in_top_left[1], box_in_bottom_right[1] + 1)
+        ]
+        for _block_y in range(box_in_top_left[0], box_in_bottom_right[0] + 1)
+    ]
+
     # status_text = "Status: {}".format("START")
     # stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
     # stdscr.attroff(curses.color_pair(13))
@@ -86,25 +109,17 @@ def _game(stdscr):
     # stdscr.addstr(3, 3, u"\u2588".encode("utf-8"))
     # stdscr.attroff(curses.color_pair(13))
 
-    block = "O"
-    # stdscr.attron(curses.color_pair(13))
-    for x in range(box_top_left[1] + 2, box_bottom_right[1] + 1):
-        stdscr.addstr(box_bottom_right[0] - 2, x, block, curses.color_pair(13))
-        stdscr.addstr(box_bottom_right[0] - 1, x, block, curses.color_pair(13))
-    # stdscr.attroff(curses.color_pair(13))
+    block_content = "O"
 
-    # stdscr.attron(curses.color_pair(14))
-    # stdscr.addstr(3, 4, " ")
-    # stdscr.attroff(curses.color_pair(14))
-    # stdscr.attron(curses.color_pair(15))
-    # stdscr.addstr(3, 5, " ")
-    # stdscr.attroff(curses.color_pair(15))
-    # stdscr.attron(curses.color_pair(16))
-    # stdscr.addstr(3, 6, " ")
-    # stdscr.attroff(curses.color_pair(16))
-    # stdscr.attron(curses.color_pair(17))
-    # stdscr.addstr(3, 7, " ")
-    # stdscr.attroff(curses.color_pair(17))
+    # stdscr.addch(box_in_top_left[0], box_in_top_left[1], "O", curses.color_pair(13))
+    # stdscr.addch(box_in_bottom_right[0], box_in_top_left[1], "O", curses.color_pair(13))
+    # stdscr.addch(box_in_top_left[0], box_in_bottom_right[1], "O", curses.color_pair(13))
+    # stdscr.addch(box_in_bottom_right[0], box_in_bottom_right[1], "O", curses.color_pair(13))
+
+    for _idx_y in range(0, box_in_bottom_right[0] + 1 - box_in_top_left[0]):
+        for _idx_x in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
+            block = block_stack[_idx_y][_idx_x]
+            stdscr.addstr(block[0], block[1], "0", block[3])
 
     while 1:
         key = stdscr.getch()
