@@ -6,9 +6,11 @@ from random import randint, choice, random
 """
 KEY_RIGHT: move right
 KEY_LEFT: move left
-KEY_UP: rotate
-KEY_DOWN: drop (moving speed + 20%)
-
+KEY_UP: rotate (clockwise)
+z: rotate (counterclockwise)
+KEY_DOWN: soft drop (moving speed + 20%)
+SPACE: hard drop
+s: pause/resume
 check collisions with border/block when blocks move/rotate
 check blocks land and a new block(which is drawn) in random is ready
 check the complete horizontal blocks and erase (score)
@@ -17,6 +19,8 @@ draw blocks
 """
 
 TETRIS_GAME = 2
+BLOCK_EMPTY = 0
+BLOCK_FILLED = 1
 
 
 def _game(stdscr):
@@ -30,7 +34,9 @@ def _game(stdscr):
     box_top_left_x = 5
     box_top_left_y = 5
     KEY_ESC = 27  # exit
-    KEY_SPACE = 32  # pause/resume
+    KEY_SPACE = 32  # hard drop
+    KEY_S = 115  # "s" pause/resume
+    KEY_Z = 122  # "z" rotate couterclockwise
     KEY_ENTER = 10  # reset (restart)
     START = 1
     STOP = 0
@@ -82,16 +88,14 @@ def _game(stdscr):
     block_rotation_range = (0, 4)
     block_rotation = choice(range(*block_rotation_range))
     game_status = START
-
+    block_map = _get_total_blocks()
+    block_init_pos_map = _get_block_init_position(
+        box_in_top_left[0], (box_in_bottom_right[1] + box_in_top_left[1]) // 2
+    )
     block_dir = -1  # nothing
-    # block_stack = [
-    #     [(0, curses.COLOR_BLACK), (0, curses.COLOR_BLACK)]
-    #     [(0, curses.COLOR_BLACK), (0, curses.COLOR_BLACK)]
-    #     [(0, curses.COLOR_BLACK), (0, curses.COLOR_BLACK)]
-    # ]
-    BLOCK_EMPTY = 0
-    BLOCK_FILLED = 1
-
+    # BLOCK_EMPTY = 0
+    # BLOCK_FILLED = 1
+    global block_stack
     block_stack = [
         [
             (_block_y, _block_x, BLOCK_EMPTY, curses.color_pair(21))
@@ -99,25 +103,10 @@ def _game(stdscr):
         ]
         for _block_y in range(box_in_top_left[0], box_in_bottom_right[0] + 1)
     ]
-    """
-    [(6,7), (6,8)]
-    [(7,7), (7,8)]
-    """
+
     # status_text = "Status: {}".format("START")
     # stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
     # stdscr.attroff(curses.color_pair(13))
-
-    # stdscr.attron(curses.color_pair(11))
-    # stdscr.addstr(3, 1, u"\u2588".encode("utf-8"))
-    # stdscr.attroff(curses.color_pair(11))
-    # stdscr.attron(curses.color_pair(12))
-    # stdscr.addstr(3, 2, u"\u2588".encode("utf-8"))
-    # stdscr.attroff(curses.color_pair(12))
-    # stdscr.attron(curses.color_pair(13))
-    # stdscr.addstr(3, 3, u"\u2588".encode("utf-8"))
-    # stdscr.attroff(curses.color_pair(13))
-
-    block_content = "0"
 
     # stdscr.addch(box_in_top_left[0], box_in_top_left[1], "O", curses.color_pair(13))
     # stdscr.addch(box_in_bottom_right[0], box_in_top_left[1], "O", curses.color_pair(13))
@@ -130,20 +119,27 @@ def _game(stdscr):
             _block = block_stack[_idx_y][_idx_x]
             stdscr.addstr(_block[0], _block[1], str(_block[2]), _block[3])
 
-    block = _get_block(block_type, block_rotation)
-    # stdscr.addstr()
-    _draw_block(stdscr, block, box_in_top_left[0], box_in_top_left[1], curses.color_pair(block_color))
+    stdscr.addstr(box_in_top_left[0] + 10, box_in_top_left[1] + 2, "11111", curses.color_pair(13))
+
+    block = block_map[block_type][block_rotation]
+    block_init_pos = block_init_pos_map[block_type][block_rotation]
+    block_y_pos = block_init_pos[0]  # block(5x5) top left y
+    block_x_pos = block_init_pos[1]  # block(5x5) top left x
+
+    _draw_block(
+        stdscr, block, block, curses.color_pair(block_color), (block_y_pos, block_x_pos), (block_y_pos, block_x_pos)
+    )
 
     while 1:
         key = stdscr.getch()
-        if game_status == START and key == KEY_SPACE:
+        if game_status == START and key == KEY_S:
             stdscr.nodelay(0)
             game_status = STOP
             status_text = "Status: {}".format("STOP ")
             stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
             continue
 
-        elif game_status == STOP and key == KEY_SPACE:
+        elif game_status == STOP and key == KEY_S:
             stdscr.nodelay(1)
             stdscr.timeout(game_timeout)
             game_status = START
@@ -191,22 +187,191 @@ def _game(stdscr):
         if key == -1:  # not input
             key = block_dir
 
+        # move down
+
+        if key == curses.KEY_RIGHT:
+            # check collide
+            # move right
+
+            _draw_block(
+                stdscr,
+                block,
+                block,
+                curses.color_pair(block_color),
+                (block_y_pos, block_x_pos),
+                (block_y_pos, block_x_pos + 1),
+            )
+            block_x_pos = block_x_pos + 1
+            # merge
+            # check delete line
+            pass
+        elif key == curses.KEY_LEFT:
+            # check collide
+            # move left
+
+            _draw_block(
+                stdscr,
+                block,
+                block,
+                curses.color_pair(block_color),
+                (block_y_pos, block_x_pos),
+                (block_y_pos, block_x_pos - 1),
+            )
+            block_x_pos = block_x_pos - 1
+            # merge
+            # check delete line
+            pass
+        elif key == curses.KEY_DOWN:
+            # speed down (stdscr.timeout(game_timeout))
+            # move down
+
+            _draw_block(
+                stdscr,
+                block,
+                block,
+                curses.color_pair(block_color),
+                (block_y_pos, block_x_pos),
+                (block_y_pos + 1, block_x_pos),
+            )
+            block_y_pos = block_y_pos + 1
+            # merge
+            # check delete line
+            pass
+        elif key == KEY_SPACE:
+            # merge
+            # check delete line
+            pass
+        elif key == curses.KEY_UP:
+            # check collide
+            # rotate
+            block_rotation = 0 if block_rotation == 3 else block_rotation + 1
+            block_next = block_map[block_type][block_rotation]
+            _draw_block(
+                stdscr,
+                block,
+                block_next,
+                curses.color_pair(block_color),
+                (block_y_pos, block_x_pos),
+                (block_y_pos, block_x_pos),
+            )
+            block = block_next
+            # merge
+            # check delete line
+            pass
+        elif key == KEY_Z:
+            # check collide
+            # rotate
+            block_rotation = 3 if (block_rotation == 0) else block_rotation - 1
+            block_next = block_map[block_type][block_rotation]
+            _draw_block(
+                stdscr,
+                block,
+                block_next,
+                curses.color_pair(block_color),
+                (block_y_pos, block_x_pos),
+                (block_y_pos, block_x_pos),
+            )
+            block = block_next
+            # merge
+            # check delete line
+            pass
+        else:
+            continue
+
+        """
         # define next block
         block_color = _random_choice_next(block_color, *color_pair_range)
         block_type = _random_choice_next(block_type, *block_type_range)
         block_rotation = _random_choice_next(block_rotation, *block_rotation_range)
-        block = _get_block(block_type, block_rotation)
+        block = block_map[block_type][block_rotation]
+        block_init_pos = block_init_pos_map[block_type][block_rotation]
+        """
+        # if game over (still draw next block if necessary)
+        # if not game over then draw block
+        # if delete line then update score
 
 
-def _draw_block(stdscr, block, block_y, block_x, block_color):
-    block_len = len(block)
+def _draw_block(stdscr, block, block_next, block_color, block_pos: tuple, block_pos_next: tuple):
+    block_len = len(block)  # as the same as length of block_next
     for _y in range(block_len):
         for _x in range(block_len):
             if block[_y][_x] > 0:
-                stdscr.addstr(block_y + _y, block_x + _x, str(block[_y][_x]), block_color)
+                stdscr.addstr(block_pos[0] + _y, block_pos[1] + _x, str(BLOCK_EMPTY), curses.color_pair(21))
+
+    for _y in range(block_len):
+        for _x in range(block_len):
+            if block_next[_y][_x] > 0:
+                stdscr.addstr(block_pos_next[0] + _y, block_pos_next[1] + _x, str(block_next[_y][_x]), block_color)
 
 
-def _get_block(block_type, block_rotation):
+def _delete_line(n_lines: int):
+    # delete n lines
+    # move down y (n lines) which are not deleted
+    pass
+
+
+def _move_down(stdscr, block, block_y, block_x, block_color):
+    # _draw_block(stdscr, block, block_y + 1, block_x, block_color)
+    # _draw_block(stdscr, block, block_y, block_x, block_color)
+    pass
+
+
+def _get_block_init_position(origin_y, origin_x):
+    _block_1_pos = [
+        # square
+        (origin_y - 2, origin_x - 2),
+        (origin_y - 2, origin_x - 2),
+        (origin_y - 2, origin_x - 2),
+        (origin_y - 2, origin_x - 2),
+    ]
+    _block_2_pos = [
+        # I
+        (origin_y - 2, origin_x - 1),
+        (origin_y - 1, origin_x - 2),
+        (origin_y - 2, origin_x),
+        (origin_y, origin_x - 2),
+    ]
+    _block_3_pos = [
+        # L
+        (origin_y - 1, origin_x - 1),
+        (origin_y - 2, origin_x - 1),
+        (origin_y - 1, origin_x - 1),
+        (origin_y - 1, origin_x - 1),
+    ]
+    _block_4_pos = [
+        # L mirrored
+        (origin_y - 1, origin_x - 1),
+        (origin_y - 1, origin_x - 1),
+        (origin_y - 1, origin_x - 2),
+        (origin_y - 2, origin_x - 1),
+    ]
+    _block_5_pos = [
+        # N
+        (origin_y - 1, origin_x - 2),
+        (origin_y - 2, origin_x - 1),
+        (origin_y - 1, origin_x - 1),
+        (origin_y - 1, origin_x - 1),
+    ]
+    _block_6_pos = [
+        # N mirrored
+        (origin_y - 1, origin_x - 2),
+        (origin_y - 2, origin_x - 1),
+        (origin_y - 1, origin_x - 1),
+        (origin_y - 1, origin_x - 1),
+    ]
+    _block_7_pos = [
+        # T
+        (origin_y - 1, origin_x - 2),
+        (origin_y - 2, origin_x - 1),
+        (origin_y - 1, origin_x - 1),
+        (origin_y - 1, origin_x - 1),
+    ]
+
+    _block_pos = [_block_1_pos, _block_2_pos, _block_3_pos, _block_4_pos, _block_5_pos, _block_6_pos, _block_7_pos]
+    return _block_pos
+
+
+def _get_total_blocks():
     _block_1 = [
         # square
         [
@@ -219,22 +384,22 @@ def _get_block(block_type, block_rotation):
         [
             [0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0],
-            [0, 1, 2, 0, 0],
-            [0, 1, 1, 0, 0],
-            [0, 0, 0, 0, 0],
-        ],
-        [
-            [0, 0, 0, 0, 0],
-            [0, 1, 1, 0, 0],
-            [0, 1, 2, 0, 0],
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-        ],
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 1, 1, 0],
             [0, 0, 2, 1, 0],
+            [0, 0, 1, 1, 0],
             [0, 0, 0, 0, 0],
+        ],
+        [
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 2, 1, 0],
+            [0, 0, 1, 1, 0],
+            [0, 0, 0, 0, 0],
+        ],
+        [
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 2, 1, 0],
+            [0, 0, 1, 1, 0],
             [0, 0, 0, 0, 0],
         ],
     ]
@@ -425,8 +590,9 @@ def _get_block(block_type, block_rotation):
         ],
     ]
     _total_blocks = [_block_1, _block_2, _block_3, _block_4, _block_5, _block_6, _block_7]
-    _block = _total_blocks[block_type]
-    return _block[block_rotation]
+    return _total_blocks
+    # _block = _total_blocks[block_type]
+    # return _block[block_rotation]
 
 
 def _rectangle(stdscr, uly, ulx, lry, lrx):
