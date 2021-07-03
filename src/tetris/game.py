@@ -1,6 +1,15 @@
-from array import ArrayType
 import curses
 from random import randint, choice, random
+
+"""
+import util/block when executing game.py
+"""
+from sys import path
+from os.path import join, dirname
+
+path.append(join(dirname(__file__), "../"))
+
+from util import block as mod_block
 
 
 """
@@ -88,8 +97,8 @@ def _game(stdscr):
     block_rotation_range = (0, 4)
     block_rotation = choice(range(*block_rotation_range))
     game_status = START
-    block_map = _get_total_blocks()
-    block_init_pos_map = _get_block_init_position(
+    block_map = mod_block.get_total_blocks()
+    block_init_pos_map = mod_block.get_block_init_position(
         box_in_top_left[0], (box_in_bottom_right[1] + box_in_top_left[1]) // 2
     )
     block_dir = -1  # nothing
@@ -293,11 +302,12 @@ def _game(stdscr):
 
 def _draw_block(stdscr, block, block_next, block_color, block_pos: tuple, block_pos_next: tuple):
     block_len = len(block)  # as the same as length of block_next
+    # clear previous block
     for _y in range(block_len):
         for _x in range(block_len):
             if block[_y][_x] > 0:
                 stdscr.addstr(block_pos[0] + _y, block_pos[1] + _x, str(BLOCK_EMPTY), curses.color_pair(21))
-
+    # add next block
     for _y in range(block_len):
         for _x in range(block_len):
             if block_next[_y][_x] > 0:
@@ -314,285 +324,6 @@ def _move_down(stdscr, block, block_y, block_x, block_color):
     # _draw_block(stdscr, block, block_y + 1, block_x, block_color)
     # _draw_block(stdscr, block, block_y, block_x, block_color)
     pass
-
-
-def _get_block_init_position(origin_y, origin_x):
-    _block_1_pos = [
-        # square
-        (origin_y - 2, origin_x - 2),
-        (origin_y - 2, origin_x - 2),
-        (origin_y - 2, origin_x - 2),
-        (origin_y - 2, origin_x - 2),
-    ]
-    _block_2_pos = [
-        # I
-        (origin_y - 2, origin_x - 1),
-        (origin_y - 1, origin_x - 2),
-        (origin_y - 2, origin_x),
-        (origin_y, origin_x - 2),
-    ]
-    _block_3_pos = [
-        # L
-        (origin_y - 1, origin_x - 1),
-        (origin_y - 2, origin_x - 1),
-        (origin_y - 1, origin_x - 1),
-        (origin_y - 1, origin_x - 1),
-    ]
-    _block_4_pos = [
-        # L mirrored
-        (origin_y - 1, origin_x - 1),
-        (origin_y - 1, origin_x - 1),
-        (origin_y - 1, origin_x - 2),
-        (origin_y - 2, origin_x - 1),
-    ]
-    _block_5_pos = [
-        # N
-        (origin_y - 1, origin_x - 2),
-        (origin_y - 2, origin_x - 1),
-        (origin_y - 1, origin_x - 1),
-        (origin_y - 1, origin_x - 1),
-    ]
-    _block_6_pos = [
-        # N mirrored
-        (origin_y - 1, origin_x - 2),
-        (origin_y - 2, origin_x - 1),
-        (origin_y - 1, origin_x - 1),
-        (origin_y - 1, origin_x - 1),
-    ]
-    _block_7_pos = [
-        # T
-        (origin_y - 1, origin_x - 2),
-        (origin_y - 2, origin_x - 1),
-        (origin_y - 1, origin_x - 1),
-        (origin_y - 1, origin_x - 1),
-    ]
-
-    _block_pos = [_block_1_pos, _block_2_pos, _block_3_pos, _block_4_pos, _block_5_pos, _block_6_pos, _block_7_pos]
-    return _block_pos
-
-
-def _get_total_blocks():
-    _block_1 = [
-        # square
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-            [0, 0, 2, 1, 0],
-            [0, 0, 1, 1, 0],
-            [0, 0, 0, 0, 0],
-        ],
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-            [0, 0, 2, 1, 0],
-            [0, 0, 1, 1, 0],
-            [0, 0, 0, 0, 0],
-        ],
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-            [0, 0, 2, 1, 0],
-            [0, 0, 1, 1, 0],
-            [0, 0, 0, 0, 0],
-        ],
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-            [0, 0, 2, 1, 0],
-            [0, 0, 1, 1, 0],
-            [0, 0, 0, 0, 0],
-        ],
-    ]
-    _block_2 = [
-        # I
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-            [0, 1, 2, 1, 1],
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-        ],
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0],
-            [0, 0, 2, 0, 0],
-            [0, 0, 1, 0, 0],
-            [0, 0, 1, 0, 0],
-        ],
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-            [1, 1, 2, 1, 0],
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-        ],
-        [
-            [0, 0, 1, 0, 0],
-            [0, 0, 1, 0, 0],
-            [0, 0, 2, 0, 0],
-            [0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0],
-        ],
-    ]
-    _block_3 = [
-        # L
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0],
-            [0, 0, 2, 0, 0],
-            [0, 0, 1, 1, 0],
-            [0, 0, 0, 0, 0],
-        ],
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-            [0, 1, 2, 1, 0],
-            [0, 1, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-        ],
-        [
-            [0, 0, 0, 0, 0],
-            [0, 1, 1, 0, 0],
-            [0, 0, 2, 0, 0],
-            [0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0],
-        ],
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 1, 0],
-            [0, 1, 2, 1, 0],
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-        ],
-    ]
-    _block_4 = [
-        # L mirrored
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0],
-            [0, 0, 2, 0, 0],
-            [0, 1, 1, 0, 0],
-            [0, 0, 0, 0, 0],
-        ],
-        [
-            [0, 0, 0, 0, 0],
-            [0, 1, 0, 0, 0],
-            [0, 1, 2, 1, 0],
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-        ],
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 1, 1, 0],
-            [0, 0, 2, 0, 0],
-            [0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0],
-        ],
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-            [0, 1, 2, 1, 0],
-            [0, 0, 0, 1, 0],
-            [0, 0, 0, 0, 0],
-        ],
-    ]
-    _block_5 = [
-        # N
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 1, 0],
-            [0, 0, 2, 1, 0],
-            [0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0],
-        ],
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-            [0, 1, 2, 0, 0],
-            [0, 0, 1, 1, 0],
-            [0, 0, 0, 0, 0],
-        ],
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0],
-            [0, 1, 2, 0, 0],
-            [0, 1, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-        ],
-        [
-            [0, 0, 0, 0, 0],
-            [0, 1, 1, 0, 0],
-            [0, 0, 2, 1, 0],
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-        ],
-    ]
-    _block_6 = [
-        # N mirrored
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0],
-            [0, 0, 2, 1, 0],
-            [0, 0, 0, 1, 0],
-            [0, 0, 0, 0, 0],
-        ],
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-            [0, 0, 2, 1, 0],
-            [0, 1, 1, 0, 0],
-            [0, 0, 0, 0, 0],
-        ],
-        [
-            [0, 0, 0, 0, 0],
-            [0, 1, 0, 0, 0],
-            [0, 1, 2, 0, 0],
-            [0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0],
-        ],
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 1, 1, 0],
-            [0, 1, 2, 0, 0],
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-        ],
-    ]
-    _block_7 = [
-        # T
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0],
-            [0, 0, 2, 1, 0],
-            [0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0],
-        ],
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-            [0, 1, 2, 1, 0],
-            [0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0],
-        ],
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0],
-            [0, 1, 2, 0, 0],
-            [0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0],
-        ],
-        [
-            [0, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0],
-            [0, 1, 2, 1, 0],
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-        ],
-    ]
-    _total_blocks = [_block_1, _block_2, _block_3, _block_4, _block_5, _block_6, _block_7]
-    return _total_blocks
-    # _block = _total_blocks[block_type]
-    # return _block[block_rotation]
 
 
 def _rectangle(stdscr, uly, ulx, lry, lrx):
