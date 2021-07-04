@@ -31,7 +31,6 @@ TETRIS_GAME = 2
 BLOCK_EMPTY = 0
 BLOCK_FILLED = 1
 # 2 is a moving block pivot
-BORDER = 3
 
 
 def _game(stdscr):
@@ -331,22 +330,22 @@ def _rotate_block(box_in_top_left, box_in_bottom_right, block_next, block_pos_ne
     _block_x_pos_next = block_pos_next[1]
     for _y in range(_block_len):
         for _x in range(_block_len):
-            # check top
+            # top border
             if block_next[_y][_x] > 0 and _block_y_pos_next + _y == box_in_top_left[0] - 2:
                 _block_y_pos_next = _block_y_pos_next + 2
             elif block_next[_y][_x] > 0 and _block_y_pos_next + _y == box_in_top_left[0] - 1:
                 _block_y_pos_next = _block_y_pos_next + 1
-            # check bottom
+            # bottom border
             elif block_next[_y][_x] > 0 and _block_y_pos_next + _y == box_in_bottom_right[0] + 2:
                 _block_y_pos_next = _block_y_pos_next - 2
             elif block_next[_y][_x] > 0 and _block_y_pos_next + _y == box_in_bottom_right[0] + 1:
                 _block_y_pos_next = _block_y_pos_next - 1
-            # check left
+            # left border
             elif block_next[_y][_x] > 0 and _block_x_pos_next + _x == box_in_top_left[1] - 2:
                 _block_x_pos_next = _block_x_pos_next + 2
             elif block_next[_y][_x] > 0 and _block_x_pos_next + _x == box_in_top_left[1] - 1:
                 _block_x_pos_next = _block_x_pos_next + 1
-            # check right
+            # right border
             elif block_next[_y][_x] > 0 and _block_x_pos_next + _x == box_in_bottom_right[1] + 2:
                 _block_x_pos_next = _block_x_pos_next - 2
             elif block_next[_y][_x] > 0 and _block_x_pos_next + _x == box_in_bottom_right[1] + 1:
@@ -371,22 +370,14 @@ def _rectangle(stdscr, uly, ulx, lry, lrx):
     and lower-right coordinates.
     """
     stdscr.attron(curses.color_pair(20))
-    stdscr.vline(uly + 1, ulx, str(BORDER), lry - uly - 1)
-    stdscr.hline(uly, ulx + 1, str(BORDER), lrx - ulx - 1)
-    stdscr.hline(lry, ulx + 1, str(BORDER), lrx - ulx - 1)
-    stdscr.vline(uly + 1, lrx, str(BORDER), lry - uly - 1)
+    stdscr.vline(uly + 1, ulx, curses.ACS_VLINE, lry - uly - 1)
+    stdscr.hline(uly, ulx + 1, curses.ACS_HLINE, lrx - ulx - 1)
+    stdscr.hline(lry, ulx + 1, curses.ACS_HLINE, lrx - ulx - 1)
+    stdscr.vline(uly + 1, lrx, curses.ACS_VLINE, lry - uly - 1)
     stdscr.addch(uly, ulx, curses.ACS_ULCORNER)  # top left corner
     stdscr.addch(uly, lrx, curses.ACS_URCORNER)  # top right corner
     stdscr.addch(lry, lrx, curses.ACS_LRCORNER)  # bottom right corner
     stdscr.addch(lry, ulx, curses.ACS_LLCORNER)  # bottom left corner
-    # stdscr.vline(uly + 1, ulx, curses.ACS_VLINE, lry - uly - 1)
-    # stdscr.hline(uly, ulx + 1, curses.ACS_HLINE, lrx - ulx - 1)
-    # stdscr.hline(lry, ulx + 1, curses.ACS_HLINE, lrx - ulx - 1)
-    # stdscr.vline(uly + 1, lrx, curses.ACS_VLINE, lry - uly - 1)
-    # stdscr.addch(uly, ulx, curses.ACS_ULCORNER)  # top left corner
-    # stdscr.addch(uly, lrx, curses.ACS_URCORNER)  # top right corner
-    # stdscr.addch(lry, lrx, curses.ACS_LRCORNER)  # bottom right corner
-    # stdscr.addch(lry, ulx, curses.ACS_LLCORNER)  # bottom left corner
     stdscr.attroff(curses.color_pair(20))
 
 
