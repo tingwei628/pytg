@@ -30,6 +30,8 @@ draw blocks
 TETRIS_GAME = 2
 BLOCK_EMPTY = 0
 BLOCK_FILLED = 1
+# 2 is a moving block pivot
+BORDER = 3
 
 
 def _game(stdscr):
@@ -199,7 +201,7 @@ def _game(stdscr):
         # move down
 
         if key == curses.KEY_RIGHT:
-            # check collide
+            # check collide(move in block and move border)
             # move right
 
             _draw_block(
@@ -215,7 +217,7 @@ def _game(stdscr):
             # check delete line
             pass
         elif key == curses.KEY_LEFT:
-            # check collide
+            # check collide(move in block and move border)
             # move left
 
             _draw_block(
@@ -232,8 +234,11 @@ def _game(stdscr):
             pass
         elif key == curses.KEY_DOWN:
             # speed down (stdscr.timeout(game_timeout))
+            # collide (move in block and move border)
             # move down
-
+            # k_left = stdscr.instr(3, screen_width_mid - len(status_text) // 2 + 1, 1)
+            # k_right = stdscr.instr(3, screen_width_mid - len(status_text) // 2 + 1, 1)
+            # k_bottom = stdscr.instr(3, screen_width_mid - len(status_text) // 2 + 1, 1)
             _draw_block(
                 stdscr,
                 block,
@@ -247,40 +252,46 @@ def _game(stdscr):
             # check delete line
             pass
         elif key == KEY_SPACE:
+            # collide (move in block and move border)
             # merge
             # check delete line
             pass
         elif key == curses.KEY_UP:
-            # check collide
-            # rotate
             block_rotation = 0 if block_rotation == 3 else block_rotation + 1
             block_next = block_map[block_type][block_rotation]
+            # rotate
+            block_pos_next = _rotate_block(box_in_top_left, box_in_bottom_right, block_next, (block_y_pos, block_x_pos))
             _draw_block(
                 stdscr,
                 block,
                 block_next,
                 curses.color_pair(block_color),
                 (block_y_pos, block_x_pos),
-                (block_y_pos, block_x_pos),
+                (block_pos_next[0], block_pos_next[1]),
             )
             block = block_next
+            block_y_pos = block_pos_next[0]
+            block_x_pos = block_pos_next[1]
             # merge
             # check delete line
             pass
         elif key == KEY_Z:
-            # check collide
+            # check collide(rotate in block)
             # rotate
             block_rotation = 3 if (block_rotation == 0) else block_rotation - 1
             block_next = block_map[block_type][block_rotation]
+            block_pos_next = _rotate_block(box_in_top_left, box_in_bottom_right, block_next, (block_y_pos, block_x_pos))
             _draw_block(
                 stdscr,
                 block,
                 block_next,
                 curses.color_pair(block_color),
                 (block_y_pos, block_x_pos),
-                (block_y_pos, block_x_pos),
+                (block_pos_next[0], block_pos_next[1]),
             )
             block = block_next
+            block_y_pos = block_pos_next[0]
+            block_x_pos = block_pos_next[1]
             # merge
             # check delete line
             pass
@@ -314,6 +325,35 @@ def _draw_block(stdscr, block, block_next, block_color, block_pos: tuple, block_
                 stdscr.addstr(block_pos_next[0] + _y, block_pos_next[1] + _x, str(block_next[_y][_x]), block_color)
 
 
+def _rotate_block(box_in_top_left, box_in_bottom_right, block_next, block_pos_next):
+    _block_len = len(block_next)
+    _block_y_pos_next = block_pos_next[0]
+    _block_x_pos_next = block_pos_next[1]
+    for _y in range(_block_len):
+        for _x in range(_block_len):
+            # check top
+            if block_next[_y][_x] > 0 and _block_y_pos_next + _y == box_in_top_left[0] - 2:
+                _block_y_pos_next = _block_y_pos_next + 2
+            elif block_next[_y][_x] > 0 and _block_y_pos_next + _y == box_in_top_left[0] - 1:
+                _block_y_pos_next = _block_y_pos_next + 1
+            # check bottom
+            elif block_next[_y][_x] > 0 and _block_y_pos_next + _y == box_in_bottom_right[0] + 2:
+                _block_y_pos_next = _block_y_pos_next - 2
+            elif block_next[_y][_x] > 0 and _block_y_pos_next + _y == box_in_bottom_right[0] + 1:
+                _block_y_pos_next = _block_y_pos_next - 1
+            # check left
+            elif block_next[_y][_x] > 0 and _block_x_pos_next + _x == box_in_top_left[1] - 2:
+                _block_x_pos_next = _block_x_pos_next + 2
+            elif block_next[_y][_x] > 0 and _block_x_pos_next + _x == box_in_top_left[1] - 1:
+                _block_x_pos_next = _block_x_pos_next + 1
+            # check right
+            elif block_next[_y][_x] > 0 and _block_x_pos_next + _x == box_in_bottom_right[1] + 2:
+                _block_x_pos_next = _block_x_pos_next - 2
+            elif block_next[_y][_x] > 0 and _block_x_pos_next + _x == box_in_bottom_right[1] + 1:
+                _block_x_pos_next = _block_x_pos_next - 1
+    return (_block_y_pos_next, _block_x_pos_next)
+
+
 def _delete_line(n_lines: int):
     # delete n lines
     # move down y (n lines) which are not deleted
@@ -331,14 +371,22 @@ def _rectangle(stdscr, uly, ulx, lry, lrx):
     and lower-right coordinates.
     """
     stdscr.attron(curses.color_pair(20))
-    stdscr.vline(uly + 1, ulx, curses.ACS_VLINE, lry - uly - 1)
-    stdscr.hline(uly, ulx + 1, curses.ACS_HLINE, lrx - ulx - 1)
-    stdscr.hline(lry, ulx + 1, curses.ACS_HLINE, lrx - ulx - 1)
-    stdscr.vline(uly + 1, lrx, curses.ACS_VLINE, lry - uly - 1)
+    stdscr.vline(uly + 1, ulx, str(BORDER), lry - uly - 1)
+    stdscr.hline(uly, ulx + 1, str(BORDER), lrx - ulx - 1)
+    stdscr.hline(lry, ulx + 1, str(BORDER), lrx - ulx - 1)
+    stdscr.vline(uly + 1, lrx, str(BORDER), lry - uly - 1)
     stdscr.addch(uly, ulx, curses.ACS_ULCORNER)  # top left corner
     stdscr.addch(uly, lrx, curses.ACS_URCORNER)  # top right corner
     stdscr.addch(lry, lrx, curses.ACS_LRCORNER)  # bottom right corner
     stdscr.addch(lry, ulx, curses.ACS_LLCORNER)  # bottom left corner
+    # stdscr.vline(uly + 1, ulx, curses.ACS_VLINE, lry - uly - 1)
+    # stdscr.hline(uly, ulx + 1, curses.ACS_HLINE, lrx - ulx - 1)
+    # stdscr.hline(lry, ulx + 1, curses.ACS_HLINE, lrx - ulx - 1)
+    # stdscr.vline(uly + 1, lrx, curses.ACS_VLINE, lry - uly - 1)
+    # stdscr.addch(uly, ulx, curses.ACS_ULCORNER)  # top left corner
+    # stdscr.addch(uly, lrx, curses.ACS_URCORNER)  # top right corner
+    # stdscr.addch(lry, lrx, curses.ACS_LRCORNER)  # bottom right corner
+    # stdscr.addch(lry, ulx, curses.ACS_LLCORNER)  # bottom left corner
     stdscr.attroff(curses.color_pair(20))
 
 
