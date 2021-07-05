@@ -281,16 +281,15 @@ def _game(stdscr):
             pass
         elif key == curses.KEY_UP:
             block_rotation_next = 0 if block_rotation == 3 else block_rotation + 1
-            block_next = block_map[block_type][block_rotation_next]
             # rotate
             block_pos_next = _rotate_block(
                 (1, 1 if BLOCK_I_INDEX != block_rotation_next else 2),
                 box_in_top_left,
                 box_in_bottom_right,
-                block_rotation_next,
-                block_next,
-                [block_y_pos, block_x_pos],
+                (block_type, block_rotation_next),
+                (block_y_pos, block_x_pos),
             )
+            block_next = block_map[block_type][block_rotation_next]
             # rotate collision with block stack
             block_next = block_next if block_pos_next[2] else block
             _draw_block(
@@ -316,9 +315,8 @@ def _game(stdscr):
                 (2, 1 if BLOCK_I_INDEX != block_rotation_next else 2),
                 box_in_top_left,
                 box_in_bottom_right,
-                block_rotation_next,
-                block_next,
-                [block_y_pos, block_x_pos],
+                (block_type, block_rotation_next),
+                (block_y_pos, block_x_pos),
             )
             # rotate collide block stack
             block_next = block_next if block_pos_next[2] else block
@@ -367,161 +365,63 @@ def _draw_block(stdscr, block, block_next, block_color, block_pos: tuple, block_
 
 
 def _rotate_block(
-    rotation_key: tuple, box_in_top_left, box_in_bottom_right, block_rotation_next, block_next, block_pos_next: tuple
+    rotation_key: tuple,
+    box_in_top_left: tuple,
+    box_in_bottom_right: tuple,
+    block_setup: tuple,
+    block_pos_next: tuple,
 ) -> tuple:
-    _block_len = len(block_next)
+    _block_type = block_setup[0]
+    _block_rotation_next = block_setup[1]
     _block_y_pos_next = block_pos_next[0]
     _block_x_pos_next = block_pos_next[1]
-    global block_stack
-    _rotation_test = [
-        True,  # Test 1
-        True,  # Test 2
-        True,  # Test 3
-        True,  # Test 4
-        True,  # Test 5
-    ]
+    _variant_pos = kick_map[(rotation_key[0], rotation_key[1])][_block_rotation_next]
+    WALL_KICK_TEST_NUM = 5
 
-    # wall check
-    # box_in_top_left[0] > _block_y_pos_next or
-    # box_in_top_left[1] > _block_x_pos_next or
-    # box_in_bottom_right[0] < _block_y_pos_next or
-    # box_in_bottom_right[1] < _block_x_pos_next
-
-    _variant_pos = kick_map[(rotation_key[0], rotation_key[1])][block_rotation_next]
-    for _y in range(_block_len):
-        for _x in range(_block_len):
-            if block_next[_y][_x] > 0 and (
-                box_in_top_left[0] > (_block_y_pos_next + _y - _variant_pos[0][1])
-                or box_in_top_left[1] > (_block_x_pos_next + _x + _variant_pos[0][0])
-                or box_in_bottom_right[0] < (_block_y_pos_next + _y - _variant_pos[0][1])
-                or box_in_bottom_right[1] < (_block_x_pos_next + _x + _variant_pos[0][0])
-                or block_stack[_block_y_pos_next + _y - _variant_pos[0][1] - box_in_top_left[0]][
-                    _block_x_pos_next + _x + _variant_pos[0][0] - box_in_top_left[1]
-                ][2]
-                > 0
-            ):
-                if _rotation_test[0]:
-                    _rotation_test[0] = False
-                    break
-        if not _rotation_test[0]:
-            break
-
-    if _rotation_test[0]:
-        return (
-            _block_y_pos_next - _variant_pos[0][1],
-            _block_x_pos_next + _variant_pos[0][0],
-            True,
+    for test in range(WALL_KICK_TEST_NUM):
+        _rotatation_test = _is_block_pos_over_border(
+            box_in_top_left,
+            box_in_bottom_right,
+            (_block_type, _block_rotation_next),
+            (_block_y_pos_next - _variant_pos[test][1], _block_x_pos_next + _variant_pos[test][0]),
         )
-
-    for _y in range(_block_len):
-        for _x in range(_block_len):
-            if block_next[_y][_x] > 0 and (
-                box_in_top_left[0] > (_block_y_pos_next + _y - _variant_pos[1][1])
-                or box_in_top_left[1] > (_block_x_pos_next + _x + _variant_pos[1][0])
-                or box_in_bottom_right[0] < (_block_y_pos_next + _y - _variant_pos[1][1])
-                or box_in_bottom_right[1] < (_block_x_pos_next + _x + _variant_pos[1][0])
-                or block_stack[_block_y_pos_next + _y - _variant_pos[1][1] - box_in_top_left[0]][
-                    _block_x_pos_next + _x + _variant_pos[1][0] - box_in_top_left[1]
-                ][2]
-                > 0
-            ):
-                if _rotation_test[1]:
-                    _rotation_test[1] = False
-                    break
-        if not _rotation_test[1]:
-            break
-
-    if _rotation_test[1]:
-        return (
-            _block_y_pos_next - _variant_pos[1][1],
-            _block_x_pos_next + _variant_pos[1][0],
-            True,
-        )
-
-    for _y in range(_block_len):
-        for _x in range(_block_len):
-            if block_next[_y][_x] > 0 and (
-                box_in_top_left[0] > (_block_y_pos_next + _y - _variant_pos[2][1])
-                or box_in_top_left[1] > (_block_x_pos_next + _x + _variant_pos[2][0])
-                or box_in_bottom_right[0] < (_block_y_pos_next + _y - _variant_pos[2][1])
-                or box_in_bottom_right[1] < (_block_x_pos_next + _x + _variant_pos[2][0])
-                or block_stack[_block_y_pos_next + _y - _variant_pos[2][1] - box_in_top_left[0]][
-                    _block_x_pos_next + _x + _variant_pos[2][0] - box_in_top_left[1]
-                ][2]
-                > 0
-            ):
-                if _rotation_test[2]:
-                    _rotation_test[2] = False
-                    break
-        if not _rotation_test[2]:
-            break
-
-    if _rotation_test[2]:
-        return (
-            _block_y_pos_next - _variant_pos[2][1],
-            _block_x_pos_next + _variant_pos[2][0],
-            True,
-        )
-
-    for _y in range(_block_len):
-        for _x in range(_block_len):
-            if block_next[_y][_x] > 0 and (
-                box_in_top_left[0] > (_block_y_pos_next + _y - _variant_pos[3][1])
-                or box_in_top_left[1] > (_block_x_pos_next + _x + _variant_pos[3][0])
-                or box_in_bottom_right[0] < (_block_y_pos_next + _y - _variant_pos[3][1])
-                or box_in_bottom_right[1] < (_block_x_pos_next + _x + _variant_pos[3][0])
-                or block_stack[_block_y_pos_next + _y - _variant_pos[3][1] - box_in_top_left[0]][
-                    _block_x_pos_next + _x + _variant_pos[3][0] - box_in_top_left[1]
-                ][2]
-                > 0
-            ):
-                if _rotation_test[3]:
-                    _rotation_test[3] = False
-                    break
-        if not _rotation_test[3]:
-            break
-
-    if _rotation_test[3]:
-        return (
-            _block_y_pos_next - _variant_pos[3][1],
-            _block_x_pos_next + _variant_pos[3][0],
-            True,
-        )
-
-    for _y in range(_block_len):
-        for _x in range(_block_len):
-            if block_next[_y][_x] > 0 and (
-                box_in_top_left[0] > (_block_y_pos_next + _y - _variant_pos[4][1])
-                or box_in_top_left[1] > (_block_x_pos_next + _x + _variant_pos[4][0])
-                or box_in_bottom_right[0] < (_block_y_pos_next + _y - _variant_pos[4][1])
-                or box_in_bottom_right[1] < (_block_x_pos_next + _x + _variant_pos[4][0])
-                or block_stack[_block_y_pos_next + _y - _variant_pos[4][1] - box_in_top_left[0]][
-                    _block_x_pos_next + _x + _variant_pos[4][0] - box_in_top_left[1]
-                ][2]
-                > 0
-            ):
-                if _rotation_test[4]:
-                    _rotation_test[4] = False
-                    break
-        if not _rotation_test[4]:
-            break
-
-    if _rotation_test[4]:
-        return (
-            _block_y_pos_next - _variant_pos[4][1],
-            _block_x_pos_next + _variant_pos[4][0],
-            True,
-        )
-
+        if not _rotatation_test:
+            return (
+                _block_y_pos_next - _variant_pos[test][1],
+                _block_x_pos_next + _variant_pos[test][0],
+                True,
+            )
     return (_block_y_pos_next, _block_x_pos_next, False)
-    # _rotation_index = _rotation_test.index(True) if True in _rotation_test else -1
-    # if _rotation_index == -1:  # failed
-    #     return (_block_y_pos_next, _block_x_pos_next, False)
-    # return (
-    #     _block_y_pos_next - _variant_pos[_rotation_index][1],
-    #     _block_x_pos_next + _variant_pos[_rotation_index][0],
-    #     True,
-    # )
+
+
+def _is_block_next_no_different_():
+    pass
+
+
+def _is_block_pos_over_border(
+    box_in_top_left: tuple, box_in_bottom_right: tuple, block_setup: tuple, block_pos_next: tuple
+):
+
+    _block_type = block_setup[0]
+    _block_rotation_next = block_setup[1]
+    _block_next = block_map[_block_type][_block_rotation_next]
+    _block_len = len(_block_next)
+    _block_y_pos_next = block_pos_next[0]
+    _block_x_pos_next = block_pos_next[1]
+
+    for _y in range(_block_len):
+        for _x in range(_block_len):
+            if _block_next[_y][_x] > 0 and (
+                box_in_top_left[0] > (_block_y_pos_next + _y)
+                or box_in_top_left[1] > (_block_x_pos_next + _x)
+                or box_in_bottom_right[0] < (_block_y_pos_next + _y)
+                or box_in_bottom_right[1] < (_block_x_pos_next + _x)
+                or block_stack[_block_y_pos_next + _y - box_in_top_left[0]][
+                    _block_x_pos_next + _x - box_in_top_left[1]
+                ][2]
+                > 0
+            ):
+                return True
 
 
 def _delete_line(n_lines: int):
