@@ -294,6 +294,7 @@ def _game(stdscr):
                 [block_y_pos, block_x_pos],
             )
             # rotate collision with block stack
+            block_next = block_next if block_pos_next[2] else block
             _draw_block(
                 stdscr,
                 block,
@@ -322,7 +323,7 @@ def _game(stdscr):
                 [block_y_pos, block_x_pos],
             )
             # rotate collide block stack
-
+            block_next = block_next if block_pos_next[2] else block
             _draw_block(
                 stdscr,
                 block,
@@ -482,90 +483,138 @@ def _rotate_block(
     _variant_pos = kick_map[(rotation_key[0], rotation_key[1])][block_rotation_next]
     for _y in range(_block_len):
         for _x in range(_block_len):
-            if (
+            if block_next[_y][_x] > 0 and (
                 box_in_top_left[0] > (_block_y_pos_next + _y - _variant_pos[0][1])
                 or box_in_top_left[1] > (_block_x_pos_next + _x + _variant_pos[0][0])
                 or box_in_bottom_right[0] < (_block_y_pos_next + _y - _variant_pos[0][1])
                 or box_in_bottom_right[1] < (_block_x_pos_next + _x + _variant_pos[0][0])
-                or (
-                    block_next[_y][_x] > 0
-                    and block_stack[_block_y_pos_next + _y - _variant_pos[0][1] - box_in_top_left[0]][
-                        _block_x_pos_next + _x + _variant_pos[0][0] - box_in_top_left[0]
-                    ][2]
-                    > 0
-                )
+                or block_stack[_block_y_pos_next + _y - _variant_pos[0][1] - box_in_top_left[0]][
+                    _block_x_pos_next + _x + _variant_pos[0][0] - box_in_top_left[1]
+                ][2]
+                > 0
             ):
                 if _rotation_test[0]:
                     _rotation_test[0] = False
-            if (
+                    break
+        if not _rotation_test[0]:
+            break
+
+    if _rotation_test[0]:
+        return (
+            _block_y_pos_next - _variant_pos[0][1],
+            _block_x_pos_next + _variant_pos[0][0],
+            True,
+        )
+
+    for _y in range(_block_len):
+        for _x in range(_block_len):
+            if block_next[_y][_x] > 0 and (
                 box_in_top_left[0] > (_block_y_pos_next + _y - _variant_pos[1][1])
                 or box_in_top_left[1] > (_block_x_pos_next + _x + _variant_pos[1][0])
                 or box_in_bottom_right[0] < (_block_y_pos_next + _y - _variant_pos[1][1])
                 or box_in_bottom_right[1] < (_block_x_pos_next + _x + _variant_pos[1][0])
-                or (
-                    block_next[_y][_x] > 0
-                    and block_stack[_block_y_pos_next + _y - _variant_pos[1][1] - box_in_top_left[0]][
-                        _block_x_pos_next + _x + _variant_pos[1][0] - box_in_top_left[0]
-                    ][2]
-                    > 0
-                )
+                or block_stack[_block_y_pos_next + _y - _variant_pos[1][1] - box_in_top_left[0]][
+                    _block_x_pos_next + _x + _variant_pos[1][0] - box_in_top_left[1]
+                ][2]
+                > 0
             ):
                 if _rotation_test[1]:
                     _rotation_test[1] = False
-            if (
+                    break
+        if not _rotation_test[1]:
+            break
+
+    if _rotation_test[1]:
+        return (
+            _block_y_pos_next - _variant_pos[1][1],
+            _block_x_pos_next + _variant_pos[1][0],
+            True,
+        )
+
+    for _y in range(_block_len):
+        for _x in range(_block_len):
+            if block_next[_y][_x] > 0 and (
                 box_in_top_left[0] > (_block_y_pos_next + _y - _variant_pos[2][1])
                 or box_in_top_left[1] > (_block_x_pos_next + _x + _variant_pos[2][0])
                 or box_in_bottom_right[0] < (_block_y_pos_next + _y - _variant_pos[2][1])
                 or box_in_bottom_right[1] < (_block_x_pos_next + _x + _variant_pos[2][0])
-                or (
-                    block_next[_y][_x] > 0
-                    and block_stack[_block_y_pos_next + _y - _variant_pos[2][1] - box_in_top_left[0]][
-                        _block_x_pos_next + _x + _variant_pos[2][0] - box_in_top_left[0]
-                    ][2]
-                    > 0
-                )
+                or block_stack[_block_y_pos_next + _y - _variant_pos[2][1] - box_in_top_left[0]][
+                    _block_x_pos_next + _x + _variant_pos[2][0] - box_in_top_left[1]
+                ][2]
+                > 0
             ):
                 if _rotation_test[2]:
                     _rotation_test[2] = False
-            if (
+                    break
+        if not _rotation_test[2]:
+            break
+
+    if _rotation_test[2]:
+        return (
+            _block_y_pos_next - _variant_pos[2][1],
+            _block_x_pos_next + _variant_pos[2][0],
+            True,
+        )
+
+    for _y in range(_block_len):
+        for _x in range(_block_len):
+            if block_next[_y][_x] > 0 and (
                 box_in_top_left[0] > (_block_y_pos_next + _y - _variant_pos[3][1])
                 or box_in_top_left[1] > (_block_x_pos_next + _x + _variant_pos[3][0])
                 or box_in_bottom_right[0] < (_block_y_pos_next + _y - _variant_pos[3][1])
                 or box_in_bottom_right[1] < (_block_x_pos_next + _x + _variant_pos[3][0])
-                or (
-                    block_next[_y][_x] > 0
-                    and block_stack[_block_y_pos_next + _y - _variant_pos[3][1] - box_in_top_left[0]][
-                        _block_x_pos_next + _x + _variant_pos[3][0] - box_in_top_left[0]
-                    ][2]
-                    > 0
-                )
+                or block_stack[_block_y_pos_next + _y - _variant_pos[3][1] - box_in_top_left[0]][
+                    _block_x_pos_next + _x + _variant_pos[3][0] - box_in_top_left[1]
+                ][2]
+                > 0
             ):
                 if _rotation_test[3]:
                     _rotation_test[3] = False
-            if (
+                    break
+        if not _rotation_test[3]:
+            break
+
+    if _rotation_test[3]:
+        return (
+            _block_y_pos_next - _variant_pos[3][1],
+            _block_x_pos_next + _variant_pos[3][0],
+            True,
+        )
+
+    for _y in range(_block_len):
+        for _x in range(_block_len):
+            if block_next[_y][_x] > 0 and (
                 box_in_top_left[0] > (_block_y_pos_next + _y - _variant_pos[4][1])
                 or box_in_top_left[1] > (_block_x_pos_next + _x + _variant_pos[4][0])
                 or box_in_bottom_right[0] < (_block_y_pos_next + _y - _variant_pos[4][1])
                 or box_in_bottom_right[1] < (_block_x_pos_next + _x + _variant_pos[4][0])
-                or (
-                    block_next[_y][_x] > 0
-                    and block_stack[_block_y_pos_next + _y - _variant_pos[4][1] - box_in_top_left[0]][
-                        _block_x_pos_next + _x + _variant_pos[4][0] - box_in_top_left[0]
-                    ][2]
-                    > 0
-                )
+                or block_stack[_block_y_pos_next + _y - _variant_pos[4][1] - box_in_top_left[0]][
+                    _block_x_pos_next + _x + _variant_pos[4][0] - box_in_top_left[1]
+                ][2]
+                > 0
             ):
                 if _rotation_test[4]:
                     _rotation_test[4] = False
+                    break
+        if not _rotation_test[4]:
+            break
 
-    _rotation_index = _rotation_test.index(True) if True in _rotation_test else -1
-    if _rotation_index == -1:  # failed
-        return (_block_y_pos_next, _block_x_pos_next, False)
-    return (
-        _block_y_pos_next - _variant_pos[_rotation_index][1],
-        _block_x_pos_next + _variant_pos[_rotation_index][0],
-        True,
-    )
+    if _rotation_test[4]:
+        return (
+            _block_y_pos_next - _variant_pos[4][1],
+            _block_x_pos_next + _variant_pos[4][0],
+            True,
+        )
+
+    return (_block_y_pos_next, _block_x_pos_next, False)
+    # _rotation_index = _rotation_test.index(True) if True in _rotation_test else -1
+    # if _rotation_index == -1:  # failed
+    #     return (_block_y_pos_next, _block_x_pos_next, False)
+    # return (
+    #     _block_y_pos_next - _variant_pos[_rotation_index][1],
+    #     _block_x_pos_next + _variant_pos[_rotation_index][0],
+    #     True,
+    # )
 
 
 def _delete_line(n_lines: int):
