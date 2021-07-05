@@ -22,4 +22,6 @@ https://user-images.githubusercontent.com/8874154/123507640-18402a80-d69d-11eb-9
 
 ### Acknowledgements
 
-[python-curses-tut@nikhilkumarsingh](https://github.com/nikhilkumarsingh/python-curses-tut)
+[python-curses-tut@nikhilkumarsingh](https://github.com/nikhilkumarsingh/python-curses-tut)\
+[Tetris tutorial@javilop](https://javilop.com/gamedev/tetris-tutorial-in-c-platform-independent-focused-in-game-logic-for-beginners/)\
+[Super Rotation System](https://tetris.wiki/Super_Rotation_System)

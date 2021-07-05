@@ -25,12 +25,33 @@ check blocks land and a new block(which is drawn) in random is ready
 check the complete horizontal blocks and erase (score)
 check "Over" when blocks hit(or beyond) upper horizontal border
 draw blocks
+
+
+
+
+1.Wall kick
+2.Floor kick ???
+3.Lock delay (when soft drop/hard drop)
+
 """
 
 TETRIS_GAME = 2
 BLOCK_EMPTY = 0
 BLOCK_FILLED = 1
 # 2 is a moving block pivot
+
+KEY_ESC = 27  # exit
+KEY_SPACE = 32  # hard drop
+KEY_S = 115  # "s" pause/resume
+KEY_Z = 122  # "z" rotate couterclockwise
+KEY_ENTER = 10  # reset (restart)
+
+ROTATION_CLOCKWISE = 1
+ROTATION_COUNTERCLOCKWISE = 2
+BLOCK_I_INDEX = 1  # I block
+
+block_stack = []
+block_map = []
 
 
 def _game(stdscr):
@@ -43,11 +64,6 @@ def _game(stdscr):
     stdscr.timeout(game_timeout)
     box_top_left_x = 5
     box_top_left_y = 5
-    KEY_ESC = 27  # exit
-    KEY_SPACE = 32  # hard drop
-    KEY_S = 115  # "s" pause/resume
-    KEY_Z = 122  # "z" rotate couterclockwise
-    KEY_ENTER = 10  # reset (restart)
     START = 1
     STOP = 0
     BOX_SCALE = 2
@@ -98,6 +114,7 @@ def _game(stdscr):
     block_rotation_range = (0, 4)
     block_rotation = choice(range(*block_rotation_range))
     game_status = START
+    global block_map, block_stack
     block_map = mod_block.get_total_blocks()
     block_init_pos_map = mod_block.get_block_init_position(
         box_in_top_left[0], (box_in_bottom_right[1] + box_in_top_left[1]) // 2
@@ -105,7 +122,7 @@ def _game(stdscr):
     block_dir = -1  # nothing
     # BLOCK_EMPTY = 0
     # BLOCK_FILLED = 1
-    global block_stack
+    # global block_stack
     block_stack = [
         [
             (_block_y, _block_x, BLOCK_EMPTY, curses.color_pair(21))
@@ -129,7 +146,22 @@ def _game(stdscr):
             _block = block_stack[_idx_y][_idx_x]
             stdscr.addstr(_block[0], _block[1], str(_block[2]), _block[3])
 
-    stdscr.addstr(box_in_top_left[0] + 10, box_in_top_left[1] + 2, "11111", curses.color_pair(13))
+    # test block
+    for _x in range(5):
+        block_stack[10][_x + 2] = (block_stack[10][_x + 2][0], block_stack[10][_x + 2][1], 1, curses.color_pair(13))
+        block_stack[12][_x + 2] = (block_stack[12][_x + 2][0], block_stack[10][_x + 2][1], 1, curses.color_pair(13))
+        stdscr.addstr(
+            block_stack[10][_x + 2][0],
+            block_stack[10][_x + 2][1],
+            str(block_stack[10][_x + 2][2]),
+            block_stack[10][_x + 2][3],
+        )
+        stdscr.addstr(
+            block_stack[12][_x + 2][0],
+            block_stack[12][_x + 2][1],
+            str(block_stack[12][_x + 2][2]),
+            block_stack[12][_x + 2][3],
+        )
 
     block = block_map[block_type][block_rotation]
     block_init_pos = block_init_pos_map[block_type][block_rotation]
@@ -214,7 +246,6 @@ def _game(stdscr):
             block_x_pos = block_x_pos + 1
             # merge
             # check delete line
-            pass
         elif key == curses.KEY_LEFT:
             # check collide(move in block and move border)
             # move left
@@ -230,14 +261,10 @@ def _game(stdscr):
             block_x_pos = block_x_pos - 1
             # merge
             # check delete line
-            pass
         elif key == curses.KEY_DOWN:
             # speed down (stdscr.timeout(game_timeout))
             # collide (move in block and move border)
             # move down
-            # k_left = stdscr.instr(3, screen_width_mid - len(status_text) // 2 + 1, 1)
-            # k_right = stdscr.instr(3, screen_width_mid - len(status_text) // 2 + 1, 1)
-            # k_bottom = stdscr.instr(3, screen_width_mid - len(status_text) // 2 + 1, 1)
             _draw_block(
                 stdscr,
                 block,
@@ -249,17 +276,24 @@ def _game(stdscr):
             block_y_pos = block_y_pos + 1
             # merge
             # check delete line
-            pass
         elif key == KEY_SPACE:
             # collide (move in block and move border)
             # merge
             # check delete line
             pass
         elif key == curses.KEY_UP:
-            block_rotation = 0 if block_rotation == 3 else block_rotation + 1
+            block_rotation_next = 0 if block_rotation == 3 else block_rotation + 1
             block_next = block_map[block_type][block_rotation]
             # rotate
-            block_pos_next = _rotate_block(box_in_top_left, box_in_bottom_right, block_next, (block_y_pos, block_x_pos))
+            block_pos_next = _rotate_block(
+                (1, 1 if BLOCK_I_INDEX != block_rotation_next else 2),
+                box_in_top_left,
+                box_in_bottom_right,
+                block_rotation_next,
+                block_next,
+                [block_y_pos, block_x_pos],
+            )
+            # rotate collision with block stack
             _draw_block(
                 stdscr,
                 block,
@@ -269,17 +303,26 @@ def _game(stdscr):
                 (block_pos_next[0], block_pos_next[1]),
             )
             block = block_next
+            block_rotation = block_rotation_next if block_pos_next[2] else block_rotation
             block_y_pos = block_pos_next[0]
             block_x_pos = block_pos_next[1]
             # merge
             # check delete line
-            pass
         elif key == KEY_Z:
             # check collide(rotate in block)
             # rotate
             block_rotation = 3 if (block_rotation == 0) else block_rotation - 1
             block_next = block_map[block_type][block_rotation]
-            block_pos_next = _rotate_block(box_in_top_left, box_in_bottom_right, block_next, (block_y_pos, block_x_pos))
+            block_pos_next = _rotate_block(
+                (2, 1 if BLOCK_I_INDEX != block_rotation_next else 2),
+                box_in_top_left,
+                box_in_bottom_right,
+                block_rotation_next,
+                block_next,
+                [block_y_pos, block_x_pos],
+            )
+            # rotate collide block stack
+
             _draw_block(
                 stdscr,
                 block,
@@ -289,11 +332,11 @@ def _game(stdscr):
                 (block_pos_next[0], block_pos_next[1]),
             )
             block = block_next
+            block_rotation = block_rotation_next if block_pos_next[2] else block_rotation
             block_y_pos = block_pos_next[0]
             block_x_pos = block_pos_next[1]
             # merge
             # check delete line
-            pass
         else:
             continue
 
@@ -324,33 +367,205 @@ def _draw_block(stdscr, block, block_next, block_color, block_pos: tuple, block_
                 stdscr.addstr(block_pos_next[0] + _y, block_pos_next[1] + _x, str(block_next[_y][_x]), block_color)
 
 
-def _rotate_block(box_in_top_left, box_in_bottom_right, block_next, block_pos_next):
+def _rotate_block(
+    rotation_key: tuple, box_in_top_left, box_in_bottom_right, block_rotation_next, block_next, block_pos_next: tuple
+) -> tuple:
     _block_len = len(block_next)
     _block_y_pos_next = block_pos_next[0]
     _block_x_pos_next = block_pos_next[1]
+    global block_stack
+    _rotation_test = [
+        True,  # Test 1
+        True,  # Test 2
+        True,  # Test 3
+        True,  # Test 4
+        True,  # Test 5
+    ]
+
+    # rotate successfully -> one of _test_rotate_ is True
+    # _block_y_pos_rotate = _block_y_pos_next
+    # _block_x_pos_rotate = _block_x_pos_next
+    # for _y in range(_block_len):
+    #     for _x in range(_block_len):
+    #         # top border (kick and move down)
+    #         if block_next[_y][_x] > 0 and _block_y_pos_next + _y == box_in_top_left[0] - 2:
+    #             _block_y_pos_rotate = _block_y_pos_rotate + 2
+    #         elif block_next[_y][_x] > 0 and _block_y_pos_next + _y == box_in_top_left[0] - 1:
+    #             _block_y_pos_rotate = _block_y_pos_rotate + 1
+    #         # bottom border (kick and move up )
+    #         elif block_next[_y][_x] > 0 and _block_y_pos_next + _y == box_in_bottom_right[0] + 2:
+    #             _block_y_pos_rotate = _block_y_pos_rotate - 2
+    #         elif block_next[_y][_x] > 0 and _block_y_pos_next + _y == box_in_bottom_right[0] + 1:
+    #             _block_y_pos_rotate = _block_y_pos_rotate - 1
+    #         # left border (kick and move right)
+    #         elif block_next[_y][_x] > 0 and _block_x_pos_next + _x == box_in_top_left[1] - 2:
+    #             _block_x_pos_rotate = _block_x_pos_rotate + 2
+    #         elif block_next[_y][_x] > 0 and _block_x_pos_next + _x == box_in_top_left[1] - 1:
+    #             _block_x_pos_rotate = _block_x_pos_rotate + 1
+    #         # right border (kick and move left)
+    #         elif block_next[_y][_x] > 0 and _block_x_pos_next + _x == box_in_bottom_right[1] + 2:
+    #             _block_x_pos_rotate = _block_x_pos_rotate - 2
+    #         elif block_next[_y][_x] > 0 and _block_x_pos_next + _x == box_in_bottom_right[1] + 1:
+    #             _block_x_pos_rotate = _block_x_pos_rotate - 1
+
+    # J, L, S, T, Z Tetromino Wall Kick Data
+    # (x, y)
+    # x>0 move right
+    # y>0 move up
+    # x<0 move left
+    # y<0 move down
+    #       Test 1	Test 2	Test 3	Test 4	Test 5
+    # L->0	( 0, 0)	(-1, 0)	(-1,-1)	( 0,+2)	(-1,+2)
+    # 0->R	( 0, 0)	(-1, 0)	(-1,+1)	( 0,-2)	(-1,-2)
+    # R->2	( 0, 0)	(+1, 0)	(+1,-1)	( 0,+2)	(+1,+2)
+    # 2->L	( 0, 0)	(+1, 0)	(+1,+1)	( 0,-2)	(+1,-2)
+
+    # R->0	( 0, 0)	(+1, 0)	(+1,-1)	( 0,+2)	(+1,+2)
+    # 2->R	( 0, 0)	(-1, 0)	(-1,+1)	( 0,-2)	(-1,-2)
+    # L->2	( 0, 0)	(-1, 0)	(-1,-1)	( 0,+2)	(-1,+2)
+    # 0->L	( 0, 0)	(+1, 0)	(+1,+1)	( 0,-2)	(+1,-2)
+
+    # I Tetromino Wall Kick Data
+    # (x, y)
+    # x>0 move right
+    # y>0 move up
+    # x<0 move left
+    # y<0 move down
+    #       Test 1	Test 2	Test 3	Test 4	Test 5
+    # L->0	( 0, 0)	(+1, 0)	(-2, 0)	(+1,-2)	(-2,+1)
+    # 0->R	( 0, 0)	(-2, 0)	(+1, 0)	(-2,-1)	(+1,+2)
+    # R->2	( 0, 0)	(-1, 0)	(+2, 0)	(-1,+2)	(+2,-1)
+    # 2->L	( 0, 0)	(+2, 0)	(-1, 0)	(+2,+1)	(-1,-2)
+
+    # R->0	( 0, 0)	(+2, 0)	(-1, 0)	(+2,+1)	(-1,-2)
+    # 2->R	( 0, 0)	(+1, 0)	(-2, 0)	(+1,-2)	(-2,+1)
+    # L->2	( 0, 0)	(-2, 0)	(+1, 0)	(-2,-1)	(+1,+2)
+    # 0->L	( 0, 0)	(-1, 0)	(+2, 0)	(-1,+2)	(+2,-1)
+
+    # wall check
+    # box_in_top_left[0] > _block_y_pos_next or
+    # box_in_top_left[1] > _block_x_pos_next or
+    # box_in_bottom_right[0] < _block_y_pos_next or
+    # box_in_bottom_right[1] < _block_x_pos_next
+
+    kick_map = {
+        # (up/z, not I/I)
+        # up =1, z =2
+        # not i  =1, I = 2
+        # each element is (x, y)
+        (1, 1): [
+            [(0, 0), (-1, 0), (-1, -1), (0, +2), (-1, +2)],  # block_rotation_next = 0
+            [(0, 0), (-1, 0), (-1, +1), (0, -2), (-1, -2)],  # block_rotation_next = 1
+            [(0, 0), (+1, 0), (+1, -1), (0, +2), (+1, +2)],  # block_rotation_next = 2
+            [(0, 0), (+1, 0), (+1, +1), (0, -2), (+1, -2)],  # block_rotation_next = 3
+        ],
+        (2, 1): [
+            [(0, 0), (+1, 0), (+1, -1), (0, +2), (+1, +2)],
+            [(0, 0), (-1, 0), (-1, +1), (0, -2), (-1, -2)],
+            [(0, 0), (-1, 0), (-1, -1), (0, +2), (-1, +2)],
+            [(0, 0), (+1, 0), (+1, +1), (0, -2), (+1, -2)],
+        ],
+        (1, 2): [
+            [(0, 0), (+1, 0), (-2, 0), (+1, -2), (-2, +1)],
+            [(0, 0), (-2, 0), (+1, 0), (-2, -1), (+1, +2)],
+            [(0, 0), (-1, 0), (+2, 0), (-1, +2), (+2, -1)],
+            [(0, 0), (+2, 0), (-1, 0), (+2, +1), (-1, -2)],
+        ],
+        (2, 2): [
+            [(0, 0), (+2, 0), (-1, 0), (+2, +1), (-1, -2)],
+            [(0, 0), (+1, 0), (-2, 0), (+1, -2), (-2, +1)],
+            [(0, 0), (-2, 0), (+1, 0), (-2, -1), (+1, +2)],
+            [(0, 0), (-1, 0), (+2, 0), (-1, +2), (+2, -1)],
+        ],
+    }
+    # (x, y)
+    _variant_pos = kick_map[(rotation_key[0], rotation_key[1])][block_rotation_next]
     for _y in range(_block_len):
         for _x in range(_block_len):
-            # top border
-            if block_next[_y][_x] > 0 and _block_y_pos_next + _y == box_in_top_left[0] - 2:
-                _block_y_pos_next = _block_y_pos_next + 2
-            elif block_next[_y][_x] > 0 and _block_y_pos_next + _y == box_in_top_left[0] - 1:
-                _block_y_pos_next = _block_y_pos_next + 1
-            # bottom border
-            elif block_next[_y][_x] > 0 and _block_y_pos_next + _y == box_in_bottom_right[0] + 2:
-                _block_y_pos_next = _block_y_pos_next - 2
-            elif block_next[_y][_x] > 0 and _block_y_pos_next + _y == box_in_bottom_right[0] + 1:
-                _block_y_pos_next = _block_y_pos_next - 1
-            # left border
-            elif block_next[_y][_x] > 0 and _block_x_pos_next + _x == box_in_top_left[1] - 2:
-                _block_x_pos_next = _block_x_pos_next + 2
-            elif block_next[_y][_x] > 0 and _block_x_pos_next + _x == box_in_top_left[1] - 1:
-                _block_x_pos_next = _block_x_pos_next + 1
-            # right border
-            elif block_next[_y][_x] > 0 and _block_x_pos_next + _x == box_in_bottom_right[1] + 2:
-                _block_x_pos_next = _block_x_pos_next - 2
-            elif block_next[_y][_x] > 0 and _block_x_pos_next + _x == box_in_bottom_right[1] + 1:
-                _block_x_pos_next = _block_x_pos_next - 1
-    return (_block_y_pos_next, _block_x_pos_next)
+            if (
+                box_in_top_left[0] > (_block_y_pos_next + _y - _variant_pos[0][1])
+                or box_in_top_left[1] > (_block_x_pos_next + _x + _variant_pos[0][0])
+                or box_in_bottom_right[0] < (_block_y_pos_next + _y - _variant_pos[0][1])
+                or box_in_bottom_right[1] < (_block_x_pos_next + _x + _variant_pos[0][0])
+                or (
+                    block_next[_y][_x] > 0
+                    and block_stack[_block_y_pos_next + _y - _variant_pos[0][1] - box_in_top_left[0]][
+                        _block_x_pos_next + _x + _variant_pos[0][0] - box_in_top_left[0]
+                    ][2]
+                    > 0
+                )
+            ):
+                if _rotation_test[0]:
+                    _rotation_test[0] = False
+            if (
+                box_in_top_left[0] > (_block_y_pos_next + _y - _variant_pos[1][1])
+                or box_in_top_left[1] > (_block_x_pos_next + _x + _variant_pos[1][0])
+                or box_in_bottom_right[0] < (_block_y_pos_next + _y - _variant_pos[1][1])
+                or box_in_bottom_right[1] < (_block_x_pos_next + _x + _variant_pos[1][0])
+                or (
+                    block_next[_y][_x] > 0
+                    and block_stack[_block_y_pos_next + _y - _variant_pos[1][1] - box_in_top_left[0]][
+                        _block_x_pos_next + _x + _variant_pos[1][0] - box_in_top_left[0]
+                    ][2]
+                    > 0
+                )
+            ):
+                if _rotation_test[1]:
+                    _rotation_test[1] = False
+            if (
+                box_in_top_left[0] > (_block_y_pos_next + _y - _variant_pos[2][1])
+                or box_in_top_left[1] > (_block_x_pos_next + _x + _variant_pos[2][0])
+                or box_in_bottom_right[0] < (_block_y_pos_next + _y - _variant_pos[2][1])
+                or box_in_bottom_right[1] < (_block_x_pos_next + _x + _variant_pos[2][0])
+                or (
+                    block_next[_y][_x] > 0
+                    and block_stack[_block_y_pos_next + _y - _variant_pos[2][1] - box_in_top_left[0]][
+                        _block_x_pos_next + _x + _variant_pos[2][0] - box_in_top_left[0]
+                    ][2]
+                    > 0
+                )
+            ):
+                if _rotation_test[2]:
+                    _rotation_test[2] = False
+            if (
+                box_in_top_left[0] > (_block_y_pos_next + _y - _variant_pos[3][1])
+                or box_in_top_left[1] > (_block_x_pos_next + _x + _variant_pos[3][0])
+                or box_in_bottom_right[0] < (_block_y_pos_next + _y - _variant_pos[3][1])
+                or box_in_bottom_right[1] < (_block_x_pos_next + _x + _variant_pos[3][0])
+                or (
+                    block_next[_y][_x] > 0
+                    and block_stack[_block_y_pos_next + _y - _variant_pos[3][1] - box_in_top_left[0]][
+                        _block_x_pos_next + _x + _variant_pos[3][0] - box_in_top_left[0]
+                    ][2]
+                    > 0
+                )
+            ):
+                if _rotation_test[3]:
+                    _rotation_test[3] = False
+            if (
+                box_in_top_left[0] > (_block_y_pos_next + _y - _variant_pos[4][1])
+                or box_in_top_left[1] > (_block_x_pos_next + _x + _variant_pos[4][0])
+                or box_in_bottom_right[0] < (_block_y_pos_next + _y - _variant_pos[4][1])
+                or box_in_bottom_right[1] < (_block_x_pos_next + _x + _variant_pos[4][0])
+                or (
+                    block_next[_y][_x] > 0
+                    and block_stack[_block_y_pos_next + _y - _variant_pos[4][1] - box_in_top_left[0]][
+                        _block_x_pos_next + _x + _variant_pos[4][0] - box_in_top_left[0]
+                    ][2]
+                    > 0
+                )
+            ):
+                if _rotation_test[4]:
+                    _rotation_test[4] = False
+
+    _rotation_index = _rotation_test.index(True) if True in _rotation_test else -1
+    if _rotation_index == -1:  # failed
+        return (_block_y_pos_next, _block_x_pos_next, False)
+    return (
+        _block_y_pos_next - _variant_pos[_rotation_index][1],
+        _block_x_pos_next + _variant_pos[_rotation_index][0],
+        True,
+    )
 
 
 def _delete_line(n_lines: int):
