@@ -30,8 +30,7 @@ draw blocks
 
 
 1.Wall kick
-2.Floor kick ???
-3.Lock delay (when soft drop/hard drop)
+2.Lock delay (when soft drop/hard drop)
 
 """
 
@@ -52,6 +51,7 @@ BLOCK_I_INDEX = 1  # I block
 
 block_stack = []
 block_map = []
+kick_map = {}
 
 
 def _game(stdscr):
@@ -114,15 +114,13 @@ def _game(stdscr):
     block_rotation_range = (0, 4)
     block_rotation = choice(range(*block_rotation_range))
     game_status = START
-    global block_map, block_stack
+    global block_map, block_stack, kick_map
     block_map = mod_block.get_total_blocks()
     block_init_pos_map = mod_block.get_block_init_position(
         box_in_top_left[0], (box_in_bottom_right[1] + box_in_top_left[1]) // 2
     )
+    kick_map = mod_block.get_kick_map()
     block_dir = -1  # nothing
-    # BLOCK_EMPTY = 0
-    # BLOCK_FILLED = 1
-    # global block_stack
     block_stack = [
         [
             (_block_y, _block_x, BLOCK_EMPTY, curses.color_pair(21))
@@ -283,7 +281,7 @@ def _game(stdscr):
             pass
         elif key == curses.KEY_UP:
             block_rotation_next = 0 if block_rotation == 3 else block_rotation + 1
-            block_next = block_map[block_type][block_rotation]
+            block_next = block_map[block_type][block_rotation_next]
             # rotate
             block_pos_next = _rotate_block(
                 (1, 1 if BLOCK_I_INDEX != block_rotation_next else 2),
@@ -312,8 +310,8 @@ def _game(stdscr):
         elif key == KEY_Z:
             # check collide(rotate in block)
             # rotate
-            block_rotation = 3 if (block_rotation == 0) else block_rotation - 1
-            block_next = block_map[block_type][block_rotation]
+            block_rotation_next = 3 if (block_rotation == 0) else block_rotation - 1
+            block_next = block_map[block_type][block_rotation_next]
             block_pos_next = _rotate_block(
                 (2, 1 if BLOCK_I_INDEX != block_rotation_next else 2),
                 box_in_top_left,
@@ -383,103 +381,12 @@ def _rotate_block(
         True,  # Test 5
     ]
 
-    # rotate successfully -> one of _test_rotate_ is True
-    # _block_y_pos_rotate = _block_y_pos_next
-    # _block_x_pos_rotate = _block_x_pos_next
-    # for _y in range(_block_len):
-    #     for _x in range(_block_len):
-    #         # top border (kick and move down)
-    #         if block_next[_y][_x] > 0 and _block_y_pos_next + _y == box_in_top_left[0] - 2:
-    #             _block_y_pos_rotate = _block_y_pos_rotate + 2
-    #         elif block_next[_y][_x] > 0 and _block_y_pos_next + _y == box_in_top_left[0] - 1:
-    #             _block_y_pos_rotate = _block_y_pos_rotate + 1
-    #         # bottom border (kick and move up )
-    #         elif block_next[_y][_x] > 0 and _block_y_pos_next + _y == box_in_bottom_right[0] + 2:
-    #             _block_y_pos_rotate = _block_y_pos_rotate - 2
-    #         elif block_next[_y][_x] > 0 and _block_y_pos_next + _y == box_in_bottom_right[0] + 1:
-    #             _block_y_pos_rotate = _block_y_pos_rotate - 1
-    #         # left border (kick and move right)
-    #         elif block_next[_y][_x] > 0 and _block_x_pos_next + _x == box_in_top_left[1] - 2:
-    #             _block_x_pos_rotate = _block_x_pos_rotate + 2
-    #         elif block_next[_y][_x] > 0 and _block_x_pos_next + _x == box_in_top_left[1] - 1:
-    #             _block_x_pos_rotate = _block_x_pos_rotate + 1
-    #         # right border (kick and move left)
-    #         elif block_next[_y][_x] > 0 and _block_x_pos_next + _x == box_in_bottom_right[1] + 2:
-    #             _block_x_pos_rotate = _block_x_pos_rotate - 2
-    #         elif block_next[_y][_x] > 0 and _block_x_pos_next + _x == box_in_bottom_right[1] + 1:
-    #             _block_x_pos_rotate = _block_x_pos_rotate - 1
-
-    # J, L, S, T, Z Tetromino Wall Kick Data
-    # (x, y)
-    # x>0 move right
-    # y>0 move up
-    # x<0 move left
-    # y<0 move down
-    #       Test 1	Test 2	Test 3	Test 4	Test 5
-    # L->0	( 0, 0)	(-1, 0)	(-1,-1)	( 0,+2)	(-1,+2)
-    # 0->R	( 0, 0)	(-1, 0)	(-1,+1)	( 0,-2)	(-1,-2)
-    # R->2	( 0, 0)	(+1, 0)	(+1,-1)	( 0,+2)	(+1,+2)
-    # 2->L	( 0, 0)	(+1, 0)	(+1,+1)	( 0,-2)	(+1,-2)
-
-    # R->0	( 0, 0)	(+1, 0)	(+1,-1)	( 0,+2)	(+1,+2)
-    # 2->R	( 0, 0)	(-1, 0)	(-1,+1)	( 0,-2)	(-1,-2)
-    # L->2	( 0, 0)	(-1, 0)	(-1,-1)	( 0,+2)	(-1,+2)
-    # 0->L	( 0, 0)	(+1, 0)	(+1,+1)	( 0,-2)	(+1,-2)
-
-    # I Tetromino Wall Kick Data
-    # (x, y)
-    # x>0 move right
-    # y>0 move up
-    # x<0 move left
-    # y<0 move down
-    #       Test 1	Test 2	Test 3	Test 4	Test 5
-    # L->0	( 0, 0)	(+1, 0)	(-2, 0)	(+1,-2)	(-2,+1)
-    # 0->R	( 0, 0)	(-2, 0)	(+1, 0)	(-2,-1)	(+1,+2)
-    # R->2	( 0, 0)	(-1, 0)	(+2, 0)	(-1,+2)	(+2,-1)
-    # 2->L	( 0, 0)	(+2, 0)	(-1, 0)	(+2,+1)	(-1,-2)
-
-    # R->0	( 0, 0)	(+2, 0)	(-1, 0)	(+2,+1)	(-1,-2)
-    # 2->R	( 0, 0)	(+1, 0)	(-2, 0)	(+1,-2)	(-2,+1)
-    # L->2	( 0, 0)	(-2, 0)	(+1, 0)	(-2,-1)	(+1,+2)
-    # 0->L	( 0, 0)	(-1, 0)	(+2, 0)	(-1,+2)	(+2,-1)
-
     # wall check
     # box_in_top_left[0] > _block_y_pos_next or
     # box_in_top_left[1] > _block_x_pos_next or
     # box_in_bottom_right[0] < _block_y_pos_next or
     # box_in_bottom_right[1] < _block_x_pos_next
 
-    kick_map = {
-        # (up/z, not I/I)
-        # up =1, z =2
-        # not i  =1, I = 2
-        # each element is (x, y)
-        (1, 1): [
-            [(0, 0), (-1, 0), (-1, -1), (0, +2), (-1, +2)],  # block_rotation_next = 0
-            [(0, 0), (-1, 0), (-1, +1), (0, -2), (-1, -2)],  # block_rotation_next = 1
-            [(0, 0), (+1, 0), (+1, -1), (0, +2), (+1, +2)],  # block_rotation_next = 2
-            [(0, 0), (+1, 0), (+1, +1), (0, -2), (+1, -2)],  # block_rotation_next = 3
-        ],
-        (2, 1): [
-            [(0, 0), (+1, 0), (+1, -1), (0, +2), (+1, +2)],
-            [(0, 0), (-1, 0), (-1, +1), (0, -2), (-1, -2)],
-            [(0, 0), (-1, 0), (-1, -1), (0, +2), (-1, +2)],
-            [(0, 0), (+1, 0), (+1, +1), (0, -2), (+1, -2)],
-        ],
-        (1, 2): [
-            [(0, 0), (+1, 0), (-2, 0), (+1, -2), (-2, +1)],
-            [(0, 0), (-2, 0), (+1, 0), (-2, -1), (+1, +2)],
-            [(0, 0), (-1, 0), (+2, 0), (-1, +2), (+2, -1)],
-            [(0, 0), (+2, 0), (-1, 0), (+2, +1), (-1, -2)],
-        ],
-        (2, 2): [
-            [(0, 0), (+2, 0), (-1, 0), (+2, +1), (-1, -2)],
-            [(0, 0), (+1, 0), (-2, 0), (+1, -2), (-2, +1)],
-            [(0, 0), (-2, 0), (+1, 0), (-2, -1), (+1, +2)],
-            [(0, 0), (-1, 0), (+2, 0), (-1, +2), (+2, -1)],
-        ],
-    }
-    # (x, y)
     _variant_pos = kick_map[(rotation_key[0], rotation_key[1])][block_rotation_next]
     for _y in range(_block_len):
         for _x in range(_block_len):
@@ -630,7 +537,8 @@ def _move_down(stdscr, block, block_y, block_x, block_color):
 
 
 def _rectangle(stdscr, uly, ulx, lry, lrx):
-    """Draw a rectangle with corners at the provided upper-left
+    """
+    Draw a rectangle with corners at the provided upper-left
     and lower-right coordinates.
     """
     stdscr.attron(curses.color_pair(20))
