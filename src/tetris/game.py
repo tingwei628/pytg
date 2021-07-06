@@ -17,18 +17,10 @@ KEY_RIGHT: move right
 KEY_LEFT: move left
 KEY_UP: rotate (clockwise)
 z: rotate (counterclockwise)
-KEY_DOWN: soft drop (moving speed + 20%)
-SPACE: hard drop
+SPACE: sonic drop
 s: pause/resume
-check collisions with border/block when blocks move/rotate
-check blocks land and a new block(which is drawn) in random is ready
-check the complete horizontal blocks and erase (score)
-check "Over" when blocks hit(or beyond) upper horizontal border
-draw blocks
 
-
-
-
+support:
 1.Wall kick
 2.Lock delay (when soft drop/hard drop)
 
@@ -268,7 +260,6 @@ def _game(stdscr):
             )
             block_x_pos = block_pos_next[1]
         elif key == curses.KEY_DOWN:
-            # speed down (stdscr.timeout(game_timeout))
             # move down
             block_pos_next = _move_block(
                 box_in_top_left,
@@ -288,8 +279,22 @@ def _game(stdscr):
             )
             block_y_pos = block_pos_next[0]
         elif key == KEY_SPACE:
-            # collide (move in block and move border)
-            pass
+            # directly move down to block stack
+            block_pos_next = _block_pos_in_block_stack(
+                box_in_top_left,
+                box_in_bottom_right,
+                (block_type, block_rotation),
+                (block_y_pos, block_x_pos),
+            )
+            _draw_block(
+                stdscr,
+                (block_type, block_rotation),
+                (block_type, block_rotation),
+                curses.color_pair(block_color),
+                (block_y_pos, block_x_pos),
+                block_pos_next,
+            )
+            block_y_pos = block_pos_next[0]
         elif key == curses.KEY_UP:
             block_rotation_next = 0 if block_rotation == 3 else block_rotation + 1
             # rotate collision with block stack
@@ -412,6 +417,32 @@ def _draw_block_if_game_over(stdscr, box_in_top_left: tuple, block_setup: tuple,
                 stdscr.addstr(block_pos[0] + _y, block_pos[1] + _x, str(_block[_y][_x]), block_color)
 
 
+def _block_pos_in_block_stack(
+    box_in_top_left: tuple,
+    box_in_bottom_right: tuple,
+    block_setup: tuple,
+    block_pos: tuple,
+) -> tuple:
+    _block_type = block_setup[0]
+    _block_rotation = block_setup[1]
+    _block_x_pos_next = block_pos[1]
+    _block_y_pos_next = block_pos[0]
+    _step_limit = box_in_bottom_right[0] - box_in_top_left[0]
+
+    for _step_y in range(0, _step_limit):
+        _block_y_pos_next = block_pos[0] + _step_y
+        _moving_test = _is_block_pos_overlap(
+            box_in_top_left,
+            box_in_bottom_right,
+            (_block_type, _block_rotation),
+            (_block_y_pos_next, _block_x_pos_next),
+        )
+        if _moving_test:
+            break
+    _block_y_pos_next = _block_y_pos_next - 1 if _block_y_pos_next == block_pos[0] else _block_y_pos_next
+    return (_block_y_pos_next, _block_x_pos_next)
+
+
 def _move_block(
     box_in_top_left: tuple,
     box_in_bottom_right: tuple,
@@ -424,7 +455,7 @@ def _move_block(
     _block_y_pos_next = block_pos_next[0]
     _block_x_pos_next = block_pos_next[1]
 
-    _moving_test = _is_block_pos_over_border(
+    _moving_test = _is_block_pos_overlap(
         box_in_top_left,
         box_in_bottom_right,
         (_block_type, _block_rotation),
@@ -452,7 +483,7 @@ def _rotate_block(
     WALL_KICK_TEST_NUM = 5
 
     for test in range(WALL_KICK_TEST_NUM):
-        _rotatation_test = _is_block_pos_over_border(
+        _rotatation_test = _is_block_pos_overlap(
             box_in_top_left,
             box_in_bottom_right,
             (_block_type, _block_rotation_next),
@@ -471,7 +502,7 @@ def _is_block_next_same(block_rotation, block_rotation_next, block_pos: tuple, b
     return block_rotation == block_rotation_next and block_pos == block_pos_next
 
 
-def _is_block_pos_over_border(
+def _is_block_pos_overlap(
     box_in_top_left: tuple,
     box_in_bottom_right: tuple,
     block_setup: tuple,
@@ -485,6 +516,7 @@ def _is_block_pos_over_border(
     _block_y_pos_next = block_pos_next[0]
     _block_x_pos_next = block_pos_next[1]
 
+    # check if it overlaps border/block stack
     for _y in range(_block_len):
         for _x in range(_block_len):
             if _block_next[_y][_x] > 0 and (
