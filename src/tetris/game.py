@@ -127,10 +127,11 @@ def _game(stdscr):
     # stdscr.attroff(curses.color_pair(13))
 
     # draw block_stack
-    for _idx_y in range(0, box_in_bottom_right[0] + 1 - box_in_top_left[0]):
-        for _idx_x in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
-            _block = block_stack[_idx_y][_idx_x]
-            stdscr.addstr(_block[0], _block[1], str(_block[2]), _block[3])
+    _draw_block_stack(stdscr, box_in_top_left, box_in_bottom_right)
+    # for _idx_y in range(0, box_in_bottom_right[0] + 1 - box_in_top_left[0]):
+    #     for _idx_x in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
+    #         _block = block_stack[_idx_y][_idx_x]
+    #         stdscr.addstr(_block[0], _block[1], str(_block[2]), _block[3])
 
     # test block
     for _x in range(5):
@@ -230,7 +231,6 @@ def _game(stdscr):
                 (block_y_pos, block_x_pos),
                 (block_y_pos, block_x_pos + 1),
             )
-
             _draw_block(
                 stdscr,
                 (block_type, block_rotation),
@@ -249,7 +249,6 @@ def _game(stdscr):
                 (block_y_pos, block_x_pos),
                 (block_y_pos, block_x_pos - 1),
             )
-
             _draw_block(
                 stdscr,
                 (block_type, block_rotation),
@@ -329,7 +328,6 @@ def _game(stdscr):
                 (block_type, block_rotation_next),
                 (block_y_pos, block_x_pos),
             )
-            # rotate collide block stack
             block_rotation_next = block_pos_next[2]
             _draw_block(
                 stdscr,
@@ -346,18 +344,25 @@ def _game(stdscr):
             continue
 
         # merge block stack
+        _merge_block_stack(
+            box_in_top_left, (block_type, block_rotation), (block_y_pos, block_x_pos), curses.color_pair(block_color)
+        )
+        
         # if delete line (and update score)
 
+        # draw block stack
+        _draw_block_stack(stdscr, box_in_top_left, box_in_bottom_right)
+
         # define next block
-        # block_color = _random_choice_next(block_color, *color_pair_range)
-        # block_type = _random_choice_next(block_type, *block_type_range)
-        # block_rotation = _random_choice_next(block_rotation, *block_rotation_range)
-        # block_init_pos = block_init_pos_map[block_type][block_rotation]
-        # block_y_pos = block_init_pos[0]
-        # block_x_pos = block_init_pos[1]
-        # if game over (new block over top border)
-        if False:
-            is_game_over = True
+        block_color = _random_choice_next(block_color, *color_pair_range)
+        block_type = _random_choice_next(block_type, *block_type_range)
+        block_rotation = _random_choice_next(block_rotation, *block_rotation_range)
+        block_init_pos = block_init_pos_map[block_type][block_rotation]
+        block_y_pos = block_init_pos[0]
+        block_x_pos = block_init_pos[1]
+
+        # check if game over
+        is_game_over = _is_game_over(box_in_top_left, (block_type, block_rotation), (block_y_pos, block_x_pos))
 
         if is_game_over:
             # update game status
@@ -367,16 +372,22 @@ def _game(stdscr):
                 stdscr, (block_type, block_rotation), curses.color_pair(block_color), block_init_pos
             )
         else:
-            pass
-            # if not game over (draw new block)
-            # _draw_block(
-            #     stdscr,
-            #     (block_type, block_rotation),
-            #     (block_type, block_rotation),
-            #     curses.color_pair(block_color),
-            #     block_init_pos,
-            #     block_init_pos,
-            # )
+            # draw next new block
+            _draw_block(
+                stdscr,
+                (block_type, block_rotation),
+                (block_type, block_rotation),
+                curses.color_pair(block_color),
+                block_init_pos,
+                block_init_pos,
+            )
+
+
+def _draw_block_stack(stdscr, box_in_top_left: tuple, box_in_bottom_right: tuple):
+    for _idx_y in range(0, box_in_bottom_right[0] + 1 - box_in_top_left[0]):
+        for _idx_x in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
+            _block = block_stack[_idx_y][_idx_x]
+            stdscr.addstr(_block[0], _block[1], str(_block[2]), _block[3])
 
 
 def _draw_block(
@@ -412,7 +423,7 @@ def _draw_block_if_game_over(stdscr, box_in_top_left: tuple, block_setup: tuple,
             if (
                 _block[_y][_x] > 0
                 and block_map[block_pos[0] + _y][block_pos[1] + _x][2] == BLOCK_EMPTY
-                and (block_pos[0] + _y > box_in_top_left[0])
+                and (block_pos[0] + _y >= box_in_top_left[0])
             ):
                 stdscr.addstr(block_pos[0] + _y, block_pos[1] + _x, str(_block[_y][_x]), block_color)
 
@@ -499,8 +510,22 @@ def _rotate_block(
     return (_block_y_pos_next, _block_x_pos_next, block_rotation)
 
 
-def _is_block_next_same(block_rotation, block_rotation_next, block_pos: tuple, block_pos_next: tuple):
-    return block_rotation == block_rotation_next and block_pos == block_pos_next
+def _is_game_over(box_in_top_left: tuple, block_setup: tuple, block_pos: tuple) -> bool:
+    _block_type = block_setup[0]
+    _block_rotation = block_setup[1]
+    _block = block_map[_block_type][_block_rotation]
+    _block_len = len(_block)
+    _block_y_pos = block_pos[0]
+    _block_x_pos = block_pos[1]
+
+    for _y in range(_block_len):
+        for _x in range(_block_len):
+            if _block[_y][_x] > 0 and (
+                block_stack[_block_y_pos + _y - box_in_top_left[0]][_block_x_pos + _x - box_in_top_left[1]][2] > 0
+            ):
+                return True
+
+    return False
 
 
 def _is_block_pos_overlap(
@@ -535,8 +560,22 @@ def _is_block_pos_overlap(
     return False
 
 
-def _merge_block_stack():
-    pass
+def _merge_block_stack(box_in_top_left: tuple, block_setup: tuple, block_pos: tuple, block_color):
+    _block_type = block_setup[0]
+    _block_rotation = block_setup[1]
+    _block = block_map[_block_type][_block_rotation]
+    _block_len = len(_block)
+    _block_y_pos = block_pos[0]
+    _block_x_pos = block_pos[1]
+    for _y in range(_block_len):
+        for _x in range(_block_len):
+            if _block[_y][_x] > 0 and (
+                block_stack[_block_y_pos + _y - box_in_top_left[0]][_block_x_pos + _x - box_in_top_left[1]][2] == 0
+            ):
+                _temp_y = _block_y_pos + _y - box_in_top_left[0]
+                _temp_x = _block_x_pos + _x - box_in_top_left[1]
+                block_stack[_temp_y][_temp_x][2] == 1
+                block_stack[_temp_y][_temp_x][3] == block_color
 
 
 def _delete_line(n_lines: int):
