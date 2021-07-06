@@ -427,7 +427,7 @@ def _block_pos_in_block_stack(
     _block_rotation = block_setup[1]
     _block_x_pos_next = block_pos[1]
     _block_y_pos_next = block_pos[0]
-    _step_limit = box_in_bottom_right[0] - box_in_top_left[0]
+    _step_limit = box_in_bottom_right[0] - box_in_top_left[0] + 1
 
     for _step_y in range(0, _step_limit):
         _block_y_pos_next = block_pos[0] + _step_y
@@ -439,7 +439,8 @@ def _block_pos_in_block_stack(
         )
         if _moving_test:
             break
-    _block_y_pos_next = _block_y_pos_next - 1 if _block_y_pos_next == block_pos[0] else _block_y_pos_next
+
+    _block_y_pos_next = block_pos[0] if _block_y_pos_next == block_pos[0] else _block_y_pos_next - 1
     return (_block_y_pos_next, _block_x_pos_next)
 
 
