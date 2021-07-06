@@ -237,20 +237,13 @@ def _game(stdscr):
             # check collide(move in block and move border)
             # move right
 
-            _draw_block(
-                stdscr,
+            block_pos_next = _move_block(
+                box_in_top_left,
+                box_in_bottom_right,
                 (block_type, block_rotation),
-                (block_type, block_rotation),
-                curses.color_pair(block_color),
                 (block_y_pos, block_x_pos),
                 (block_y_pos, block_x_pos + 1),
             )
-            block_x_pos = block_x_pos + 1
-            # merge
-            # check delete line
-        elif key == curses.KEY_LEFT:
-            # check collide(move in block and move border)
-            # move left
 
             _draw_block(
                 stdscr,
@@ -258,24 +251,56 @@ def _game(stdscr):
                 (block_type, block_rotation),
                 curses.color_pair(block_color),
                 (block_y_pos, block_x_pos),
-                (block_y_pos, block_x_pos - 1),
+                block_pos_next,
             )
-            block_x_pos = block_x_pos - 1
+            block_x_pos = block_pos_next[1]
             # merge
             # check delete line
-        elif key == curses.KEY_DOWN:
-            # speed down (stdscr.timeout(game_timeout))
-            # collide (move in block and move border)
-            # move down
+        elif key == curses.KEY_LEFT:
+            # check collide(move in block and move border)
+            # move left
+
+            block_pos_next = _move_block(
+                box_in_top_left,
+                box_in_bottom_right,
+                (block_type, block_rotation),
+                (block_y_pos, block_x_pos),
+                (block_y_pos, block_x_pos - 1),
+            )
+
             _draw_block(
                 stdscr,
                 (block_type, block_rotation),
                 (block_type, block_rotation),
                 curses.color_pair(block_color),
                 (block_y_pos, block_x_pos),
+                block_pos_next,
+            )
+            block_x_pos = block_pos_next[1]
+            # merge
+            # check delete line
+        elif key == curses.KEY_DOWN:
+            # speed down (stdscr.timeout(game_timeout))
+            # collide (move in block and move border)
+            # move down
+
+            block_pos_next = _move_block(
+                box_in_top_left,
+                box_in_bottom_right,
+                (block_type, block_rotation),
+                (block_y_pos, block_x_pos),
                 (block_y_pos + 1, block_x_pos),
             )
-            block_y_pos = block_y_pos + 1
+
+            _draw_block(
+                stdscr,
+                (block_type, block_rotation),
+                (block_type, block_rotation),
+                curses.color_pair(block_color),
+                (block_y_pos, block_x_pos),
+                block_pos_next,
+            )
+            block_y_pos = block_pos_next[0]
             # merge
             # check delete line
         elif key == KEY_SPACE:
@@ -285,16 +310,16 @@ def _game(stdscr):
             pass
         elif key == curses.KEY_UP:
             block_rotation_next = 0 if block_rotation == 3 else block_rotation + 1
-            # rotate
+            # rotate collision with block stack
             block_pos_next = _rotate_block(
                 (1, 1 if BLOCK_TYPE_I != block_type else 2),
                 box_in_top_left,
                 box_in_bottom_right,
+                block_rotation,
                 (block_type, block_rotation_next),
                 (block_y_pos, block_x_pos),
             )
-            # rotate collision with block stack
-            block_rotation_next = block_rotation_next if block_pos_next[2] else block_rotation
+            block_rotation_next = block_pos_next[2]
             _draw_block(
                 stdscr,
                 (block_type, block_rotation),
@@ -309,18 +334,18 @@ def _game(stdscr):
             # merge
             # check delete line
         elif key == KEY_Z:
-            # check collide(rotate in block)
-            # rotate
             block_rotation_next = 3 if (block_rotation == 0) else block_rotation - 1
+            # rotate collide block stack
             block_pos_next = _rotate_block(
                 (2, 1 if BLOCK_TYPE_I != block_type else 2),
                 box_in_top_left,
                 box_in_bottom_right,
+                block_rotation,
                 (block_type, block_rotation_next),
                 (block_y_pos, block_x_pos),
             )
             # rotate collide block stack
-            block_rotation_next = block_rotation_next if block_pos_next[2] else block_rotation
+            block_rotation_next = block_pos_next[2]
             _draw_block(
                 stdscr,
                 (block_type, block_rotation),
@@ -372,10 +397,35 @@ def _draw_block(
                 stdscr.addstr(block_pos_next[0] + _y, block_pos_next[1] + _x, str(_block_next[_y][_x]), block_color)
 
 
+def _move_block(
+    box_in_top_left: tuple,
+    box_in_bottom_right: tuple,
+    block_setup: tuple,
+    block_pos: tuple,
+    block_pos_next: tuple,
+):
+    _block_type = block_setup[0]
+    _block_rotation = block_setup[1]
+    _block_y_pos_next = block_pos_next[0]
+    _block_x_pos_next = block_pos_next[1]
+
+    _moving_test = _is_block_pos_over_border(
+        box_in_top_left,
+        box_in_bottom_right,
+        (_block_type, _block_rotation),
+        (_block_y_pos_next, _block_x_pos_next),
+    )
+    if not _moving_test:
+        return block_pos_next
+
+    return block_pos
+
+
 def _rotate_block(
     rotation_key: tuple,
     box_in_top_left: tuple,
     box_in_bottom_right: tuple,
+    block_rotation: int,
     block_setup: tuple,
     block_pos_next: tuple,
 ) -> tuple:
@@ -397,9 +447,9 @@ def _rotate_block(
             return (
                 _block_y_pos_next - _variant_pos[test][1],
                 _block_x_pos_next + _variant_pos[test][0],
-                True,
+                _block_rotation_next,
             )
-    return (_block_y_pos_next, _block_x_pos_next, False)
+    return (_block_y_pos_next, _block_x_pos_next, block_rotation)
 
 
 def _is_block_next_same(block_rotation, block_rotation_next, block_pos: tuple, block_pos_next: tuple):
@@ -437,13 +487,17 @@ def _is_block_pos_over_border(
     return False
 
 
+def _merge_block_stack():
+    pass
+
+
 def _delete_line(n_lines: int):
     # delete n lines
     # move down y (n lines) which are not deleted
     pass
 
 
-def _move_down(stdscr, block, block_y, block_x, block_color):
+def _move_line_down(stdscr, block, block_y, block_x, block_color):
     # _draw_block(stdscr, block, block_y + 1, block_x, block_color)
     # _draw_block(stdscr, block, block_y, block_x, block_color)
     pass
