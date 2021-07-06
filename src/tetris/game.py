@@ -440,7 +440,7 @@ def _draw_block_if_game_over(
         _temp_y = block_pos[0] + _y - box_in_top_left[0]
         # check if block_stack occupied at the same y
         for _scan_idx in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
-            if block_stack[_scan_idx][_temp_y][2] == BLOCK_FILLED:
+            if block_stack[_temp_y][_scan_idx][2] == BLOCK_FILLED:
                 continue
 
         for _x in range(_block_len):
