@@ -573,6 +573,7 @@ def _merge_block_stack(
     _block_len = len(_block)
     _block_y_pos = block_pos[0]
     _block_x_pos = block_pos[1]
+    # merge block into block stack
     for _y in range(_block_len):
         for _x in range(_block_len):
             _temp_y = _block_y_pos + _y - box_in_top_left[0]
@@ -591,27 +592,51 @@ def _merge_block_stack(
                     block_color,
                 )
 
-    _times = 0
-    for _y in range(box_in_bottom_right[0], box_in_top_left[0] - 1, -1):
-        for _x in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
-            if block_stack[_y - box_in_top_left[0]][_x][2] > BLOCK_EMPTY:
-                _times += 1
+    # if any the possible lines to be deleted
+    # delete and move down - deleted blocks to new position
+    # repeat (until it has no possible lines)
+    _line_x_total = box_in_bottom_right[1] + 1 - box_in_top_left[1]
+    _block_stack_x_end = box_in_bottom_right[1] + 1 - box_in_top_left[1]
 
-        if _times == box_in_bottom_right[1] + 1 - box_in_top_left[1]:
-            for _x in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
-                _temp2 = block_stack[_y - box_in_top_left[0] - 1][_x]
-                if block_stack[_y - box_in_top_left[0] - 1][_x][2] > BLOCK_EMPTY:
-                    # move down
-                    block_stack[_y - box_in_top_left[0]][_x] = (_y, _temp2[1], _temp2[2], _temp2[3])
-                    # clear original
-                    block_stack[_y - box_in_top_left[0] - 1][_x] = (
-                        _temp2[0],
-                        _temp2[1],
-                        BLOCK_EMPTY,
-                        curses.color_pair(21),
-                    )
-        _times = 0
+    _line_x_num = 0
+    _line_num = 0
 
+    while 1:
+        for _y in range(box_in_bottom_right[0], box_in_top_left[0] - 1, -1):
+            for _x in range(0, _block_stack_x_end):
+                if block_stack[_y - box_in_top_left[0]][_x][2] > BLOCK_EMPTY:
+                    _line_x_num += 1
+
+            if _line_x_num == _line_x_total:
+                for _x in range(0, _block_stack_x_end):
+                    _line_num = 1
+                    _temp2 = block_stack[_y - box_in_top_left[0] - 1][_x]
+                    if block_stack[_y - box_in_top_left[0] - 1][_x][2] > BLOCK_EMPTY:
+                        # move down
+                        block_stack[_y - box_in_top_left[0]][_x] = (_y, _temp2[1], _temp2[2], _temp2[3])
+                        # clear original
+                        block_stack[_y - box_in_top_left[0] - 1][_x] = (
+                            _temp2[0],
+                            _temp2[1],
+                            BLOCK_EMPTY,
+                            curses.color_pair(21),
+                        )
+                        _line_num = 0
+            elif _line_x_num < _line_x_total and _x == _block_stack_x_end - 1:
+                break
+            _line_x_num = 0
+
+        stdscr.addstr(2, 1, "A")
+        # no possible lines
+        if _line_num == 0:
+            break
+
+        # delete and move down
+        # for _y in range(box_in_bottom_right[0], box_in_top_left[0] - 1, -1):
+        #     for _x in range(0, _block_stack_x_end):
+        #         pass
+    stdscr.addstr(2, 1, "B")
+    # draw block stack after deleting and moving down
     for _idx_y in range(0, box_in_bottom_right[0] + 1 - box_in_top_left[0]):
         for _idx_x in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
             _block = block_stack[_idx_y][_idx_x]
