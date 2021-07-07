@@ -584,7 +584,12 @@ def _merge_block_stack(
                 tuple does not support item assignment
                 it needs another new tuple to udpate
                 """
-                block_stack[_temp_y][_temp_x] = (_temp_y, _temp_x, BLOCK_FILLED, block_color)
+                block_stack[_temp_y][_temp_x] = (
+                    _temp_y + box_in_top_left[0],
+                    _temp_x + box_in_top_left[1],
+                    BLOCK_FILLED,
+                    block_color,
+                )
 
     _times = 0
     for _y in range(box_in_bottom_right[0], box_in_top_left[0] - 1, -1):
@@ -593,32 +598,24 @@ def _merge_block_stack(
                 _times += 1
 
         if _times == box_in_bottom_right[1] + 1 - box_in_top_left[1]:
-            stdscr.addstr(2, 1, "BEFORE")
             for _x in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
-                # if block_stack[_y - box_in_top_left[0]][_x][2] > BLOCK_EMPTY:
                 _temp2 = block_stack[_y - box_in_top_left[0] - 1][_x]
-                # move down
-                block_stack[_y - box_in_top_left[0]][_x] = (_y, _temp2[1], _temp2[2], _temp2[3])
-                # clear original
-                block_stack[_y - box_in_top_left[0] - 1][_x] = (
-                    _temp2[0],
-                    _temp2[1],
-                    BLOCK_EMPTY,
-                    curses.color_pair(21),
-                )
-                _lower_block = block_stack[_y - box_in_top_left[0]][_x]
-                _upper_block = block_stack[_y - box_in_top_left[0] - 1][_x]
-
-                stdscr.addstr(_lower_block[0], _lower_block[1], str(_lower_block[2]), _lower_block[3])
-                stdscr.addstr(_upper_block[0], _upper_block[1], str(_upper_block[2]), _upper_block[3])
-            stdscr.refresh()
+                if block_stack[_y - box_in_top_left[0] - 1][_x][2] > BLOCK_EMPTY:
+                    # move down
+                    block_stack[_y - box_in_top_left[0]][_x] = (_y, _temp2[1], _temp2[2], _temp2[3])
+                    # clear original
+                    block_stack[_y - box_in_top_left[0] - 1][_x] = (
+                        _temp2[0],
+                        _temp2[1],
+                        BLOCK_EMPTY,
+                        curses.color_pair(21),
+                    )
         _times = 0
-        # stdscr.addstr(2, 1, "AFTER ")
 
-    # for _idx_y in range(0, box_in_bottom_right[0] + 1 - box_in_top_left[0]):
-    #     for _idx_x in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
-    #         _block = block_stack[_idx_y][_idx_x]
-    #         stdscr.addstr(_block[0], _block[1], str(_block[2]), _block[3])
+    for _idx_y in range(0, box_in_bottom_right[0] + 1 - box_in_top_left[0]):
+        for _idx_x in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
+            _block = block_stack[_idx_y][_idx_x]
+            stdscr.addstr(_block[0], _block[1], str(_block[2]), _block[3])
 
 
 def _rectangle(stdscr, uly, ulx, lry, lrx):
