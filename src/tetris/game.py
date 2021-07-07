@@ -29,6 +29,7 @@ support:
 TETRIS_GAME = 2
 BLOCK_EMPTY = 0
 BLOCK_FILLED = 1
+
 # 2 is a moving block pivot
 
 KEY_ESC = 27  # exit
@@ -129,23 +130,6 @@ def _game(stdscr):
     # draw block_stack
     _draw_block_stack(stdscr, box_in_top_left, box_in_bottom_right)
 
-    # test block
-    # for _x in range(5):
-    #     block_stack[10][_x + 2] = (block_stack[10][_x + 2][0], block_stack[10][_x + 2][1], 1, curses.color_pair(13))
-    #     block_stack[12][_x + 2] = (block_stack[12][_x + 2][0], block_stack[10][_x + 2][1], 1, curses.color_pair(13))
-    #     stdscr.addstr(
-    #         block_stack[10][_x + 2][0],
-    #         block_stack[10][_x + 2][1],
-    #         str(block_stack[10][_x + 2][2]),
-    #         block_stack[10][_x + 2][3],
-    #     )
-    #     stdscr.addstr(
-    #         block_stack[12][_x + 2][0],
-    #         block_stack[12][_x + 2][1],
-    #         str(block_stack[12][_x + 2][2]),
-    #         block_stack[12][_x + 2][3],
-    #     )
-
     block_init_pos = block_init_pos_map[block_type][block_rotation]
     block_y_pos = block_init_pos[0]  # block(5x5) top left y
     block_x_pos = block_init_pos[1]  # block(5x5) top left x
@@ -211,6 +195,9 @@ def _game(stdscr):
             # snake_food_pos = create_food(snake_body, box_top_left, box_bottom_right)
             # stdscr.addstr(snake_food_pos[0], snake_food_pos[1], "O")
             # stdscr.attroff(curses.color_pair(2))
+            continue
+
+        if game_status == STOP:
             continue
 
         if key == -1:  # not input
@@ -292,6 +279,8 @@ def _game(stdscr):
                 block_pos_next,
             )
             block_y_pos = block_pos_next[0]
+
+            # avoid another new block to fall fast
             block_lock = True
         elif key == curses.KEY_UP:
             block_rotation_next = 0 if block_rotation == 3 else block_rotation + 1
@@ -346,15 +335,16 @@ def _game(stdscr):
         if block_lock:
             # merge block stack
             _merge_block_stack(
+                stdscr,
                 box_in_top_left,
+                box_in_bottom_right,
                 (block_type, block_rotation),
                 (block_y_pos, block_x_pos),
                 curses.color_pair(block_color),
             )
 
-            # if delete line (and update score)
+            # update score
 
-            # draw block stack
             # _draw_block_stack(stdscr, box_in_top_left, box_in_bottom_right)
 
             # define next block
@@ -436,17 +426,10 @@ def _draw_block_if_game_over(
     _block_rotation = block_setup[1]
     _block = block_map[_block_type][_block_rotation]
     _block_len = len(_block)
+
     for _y in range(_block_len):
-        _temp_y = block_pos[0] + _y - box_in_top_left[0]
-        # check if block_stack occupied at the same y
-        for _scan_idx in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
-            if block_stack[_temp_y][_scan_idx][2] == BLOCK_FILLED:
-                continue
-
         for _x in range(_block_len):
-
-            _temp_x = block_pos[1] + _x - box_in_top_left[1]
-            if _block[_y][_x] > BLOCK_EMPTY and block_stack[_temp_y][_temp_x][2] == BLOCK_EMPTY:
+            if _block[_y][_x] > BLOCK_EMPTY:
                 stdscr.addstr(block_pos[0] + _y, block_pos[1] + _x, str(_block[_y][_x]), block_color)
 
 
@@ -581,33 +564,61 @@ def _is_block_pos_overlap(
     return False
 
 
-def _merge_block_stack(box_in_top_left: tuple, block_setup: tuple, block_pos: tuple, block_color):
+def _merge_block_stack(
+    stdscr, box_in_top_left: tuple, box_in_bottom_right: tuple, block_setup: tuple, block_pos: tuple, block_color
+):
     _block_type = block_setup[0]
     _block_rotation = block_setup[1]
     _block = block_map[_block_type][_block_rotation]
     _block_len = len(_block)
     _block_y_pos = block_pos[0]
     _block_x_pos = block_pos[1]
-
     for _y in range(_block_len):
         for _x in range(_block_len):
-            if _block[_y][_x] > BLOCK_EMPTY and (
-                block_stack[_block_y_pos + _y - box_in_top_left[0]][_block_x_pos + _x - box_in_top_left[1]][2]
-                == BLOCK_EMPTY
-            ):
-                _temp_y = _block_y_pos + _y - box_in_top_left[0]
-                _temp_x = _block_x_pos + _x - box_in_top_left[1]
+            _temp_y = _block_y_pos + _y - box_in_top_left[0]
+            _temp_x = _block_x_pos + _x - box_in_top_left[1]
+
+            if _block[_y][_x] > BLOCK_EMPTY and (block_stack[_temp_y][_temp_x][2] == BLOCK_EMPTY):
+
                 """
-                 tuple does not support item assignment
-                 it needs another new tuple to udpate
+                tuple does not support item assignment
+                it needs another new tuple to udpate
                 """
                 block_stack[_temp_y][_temp_x] = (_temp_y, _temp_x, BLOCK_FILLED, block_color)
 
+    _times = 0
+    for _y in range(box_in_bottom_right[0], box_in_top_left[0] - 1, -1):
+        for _x in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
+            if block_stack[_y - box_in_top_left[0]][_x][2] > BLOCK_EMPTY:
+                _times += 1
 
-def _delete_line(n_lines: int):
-    # delete n lines
-    # move down y (n lines) which are not deleted
-    pass
+        if _times == box_in_bottom_right[1] + 1 - box_in_top_left[1]:
+            stdscr.addstr(2, 1, "BEFORE")
+            for _x in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
+                # if block_stack[_y - box_in_top_left[0]][_x][2] > BLOCK_EMPTY:
+                _temp2 = block_stack[_y - box_in_top_left[0] - 1][_x]
+                # move down
+                block_stack[_y - box_in_top_left[0]][_x] = (_y, _temp2[1], _temp2[2], _temp2[3])
+                # clear original
+                block_stack[_y - box_in_top_left[0] - 1][_x] = (
+                    _temp2[0],
+                    _temp2[1],
+                    BLOCK_EMPTY,
+                    curses.color_pair(21),
+                )
+                _lower_block = block_stack[_y - box_in_top_left[0]][_x]
+                _upper_block = block_stack[_y - box_in_top_left[0] - 1][_x]
+
+                stdscr.addstr(_lower_block[0], _lower_block[1], str(_lower_block[2]), _lower_block[3])
+                stdscr.addstr(_upper_block[0], _upper_block[1], str(_upper_block[2]), _upper_block[3])
+            stdscr.refresh()
+        _times = 0
+        # stdscr.addstr(2, 1, "AFTER ")
+
+    # for _idx_y in range(0, box_in_bottom_right[0] + 1 - box_in_top_left[0]):
+    #     for _idx_x in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
+    #         _block = block_stack[_idx_y][_idx_x]
+    #         stdscr.addstr(_block[0], _block[1], str(_block[2]), _block[3])
 
 
 def _rectangle(stdscr, uly, ulx, lry, lrx):
