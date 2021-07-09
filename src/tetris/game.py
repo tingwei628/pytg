@@ -40,10 +40,27 @@ ROTATION_CLOCKWISE = 1
 ROTATION_COUNTERCLOCKWISE = 2
 BLOCK_TYPE_I = 1  # I block
 
+COLOR_PAIR_RANGE = (11, 16)
+BLOCK_TYPE_RANGE = (0, 7)
+BLOCK_ROTATION_RANGE = (0, 4)
+
+SCORE_POS = (2, 5)
+STATUS_POS = (3, 5)
+
+START = 1
+STOP = 0
+
 block_stack = []
 block_map = []
 block_init_pos_map = []
 kick_map = {}
+block_lock = False  # is this block locked to be merged
+block_y_pos = 0
+block_x_pos = 0
+block_color = -1
+block_type = -1
+block_rotation = -1
+score = 0
 
 
 def _game(stdscr):
@@ -56,18 +73,19 @@ def _game(stdscr):
     stdscr.timeout(game_timeout)
     box_top_left_x = 5
     box_top_left_y = 5
-    START = 1
-    STOP = 0
-    # BOX_SCALE = 2
-    screen_height, screen_width = stdscr.getmaxyx()
+    game_status = START
+    is_game_over = False
+    global block_map, block_init_pos_map, block_stack, kick_map
+    global block_lock
+    global block_color, block_type, block_rotation
+    global block_y_pos, block_x_pos
+    global score
+    # screen_height, screen_width = stdscr.getmaxyx()
     # screen_height_mid = screen_height // 2
-    screen_width_mid = screen_width // 2
+    # screen_width_mid = screen_width // 2
     box_top_left = (box_top_left_x, box_top_left_y)  # (y, x)
-    # box_bottom_right = ((screen_height - box_top_left[0]) // BOX_SCALE, (screen_width - box_top_left[1]) // BOX_SCALE)
     # box inside height * width = (20 ,10)
     box_bottom_right = ((31 - box_top_left[0]), (21 - box_top_left[1]))
-    # box = (box_bottom_right[0] - box_top_left[0], box_bottom_right[1] - box_top_left[1])  # box height, width
-    # textpad.rectangle(stdscr, box_top_left[0], box_top_left[1], box_bottom_right[0], box_bottom_right[1])
     _rectangle(stdscr, box_top_left[0], box_top_left[1], box_bottom_right[0], box_bottom_right[1])
 
     # define box inside
@@ -76,68 +94,31 @@ def _game(stdscr):
     box_in_top_left = (box_top_left[0] + 1, box_top_left[1] + 1)  # y, x
     box_in_bottom_right = (box_bottom_right[0] - 1, box_bottom_right[1] - 1)  # y, x
 
-    # define color in rainbow order
-    curses.init_color(11, *_rgb_255_to_1000((255, 0, 0)))  # RED
-    curses.init_color(12, *_rgb_255_to_1000((255, 165, 0)))  # ORANGE
-    curses.init_color(13, *_rgb_255_to_1000((255, 255, 0)))  # YELLOW
-    curses.init_color(14, *_rgb_255_to_1000((0, 128, 0)))  # GREEN
-    curses.init_color(15, *_rgb_255_to_1000((0, 0, 255)))  # BLUE
-    curses.init_color(16, *_rgb_255_to_1000((75, 0, 130)))  # INDIGO
-    curses.init_color(17, *_rgb_255_to_1000((238, 130, 238)))  # VIOLET
-
-    # set block color pair
-    curses.init_pair(11, 11, 11)  # RED
-    curses.init_pair(12, 12, 12)  # ORANGE
-    curses.init_pair(13, 13, 13)  # YELLOW
-    curses.init_pair(14, 14, 14)  # GREEN
-    curses.init_pair(15, 15, 15)  # BLUE
-    # curses.init_pair(16, 16, 16)  # INDIGO
-    # curses.init_pair(17, 17, 17)  # VIOLET
+    mod_block.set_curses_color()
     # set border color pair
     curses.init_pair(20, curses.COLOR_WHITE, curses.COLOR_WHITE)
     # set block empty color
     curses.init_pair(21, curses.COLOR_BLACK, curses.COLOR_BLACK)
 
-    color_pair_range = (11, 16)
-    block_color = choice(range(*color_pair_range))
-    block_type_range = (0, 7)
-    block_type = choice(range(*block_type_range))
-    block_rotation_range = (0, 4)
-    block_rotation = choice(range(*block_rotation_range))
-    game_status = START
-    is_game_over = False
-    global block_map, block_init_pos_map, block_stack, kick_map
     block_map = mod_block.get_total_blocks()
     block_init_pos_map = mod_block.get_block_init_position(
         box_in_top_left[0], (box_in_bottom_right[1] + box_in_top_left[1]) // 2
     )
     kick_map = mod_block.get_kick_map()
-    block_dir = curses.KEY_DOWN
-    block_stack = [
-        [
-            (_block_y, _block_x, BLOCK_EMPTY, curses.color_pair(21))
-            for _block_x in range(box_in_top_left[1], box_in_bottom_right[1] + 1)
-        ]
-        for _block_y in range(box_in_top_left[0], box_in_bottom_right[0] + 1)
-    ]
 
-    # score
-    score = 0
-    score_pos = (2, 5)
-    score_text = "Score: {}".format(score)
-    stdscr.addstr(score_pos[0], score_pos[1], score_text)
+    # set block stack
+    _set_block_stack(box_in_top_left, box_in_bottom_right)
 
-    # status
-    status_text = "Status: {}".format("START")
-    status_pos = (3, 5)
-    stdscr.addstr(status_pos[0], status_pos[1], status_text)
-
-    # draw block_stack
     _draw_block_stack(stdscr, box_in_top_left, box_in_bottom_right)
 
-    block_init_pos = block_init_pos_map[block_type][block_rotation]
-    block_y_pos = block_init_pos[0]  # block(5x5) top left y
-    block_x_pos = block_init_pos[1]  # block(5x5) top left x
+    # score
+    _set_score(stdscr, 0)
+
+    # set status
+    _set_status(stdscr, "START")
+
+    # set block
+    _set_block()
 
     _draw_block(
         stdscr,
@@ -147,23 +128,20 @@ def _game(stdscr):
         (block_y_pos, block_x_pos),
         (block_y_pos, block_x_pos),
     )
-    block_lock = False
 
     while 1:
         key = stdscr.getch()
         if game_status == START and key == KEY_S:
             stdscr.nodelay(0)
             game_status = STOP
-            status_text = "Status: {}".format("STOP ")
-            stdscr.addstr(status_pos[0], status_pos[1], status_text)
+            _set_status(stdscr, "STOP")
             continue
 
         elif game_status == STOP and key == KEY_S:
             stdscr.nodelay(1)
             stdscr.timeout(game_timeout)
             game_status = START
-            status_text = "Status: {}".format("START")
-            stdscr.addstr(status_pos[0], status_pos[1], status_text)
+            _set_status(stdscr, "START")
             continue
 
         elif key == KEY_ESC:  # exit to sub_menu
@@ -180,24 +158,13 @@ def _game(stdscr):
             stdscr.timeout(INITIAL_TIMEOUT)
             # status
             game_status = START
-            status_text = "Status: {}".format("START")
-            stdscr.addstr(status_pos[0], status_pos[1], status_text)
+            _set_status(stdscr, "START")
 
             # reset block_stack
-            block_stack = [
-                [
-                    (_block_y, _block_x, BLOCK_EMPTY, curses.color_pair(21))
-                    for _block_x in range(box_in_top_left[1], box_in_bottom_right[1] + 1)
-                ]
-                for _block_y in range(box_in_top_left[0], box_in_bottom_right[0] + 1)
-            ]
+            _set_block_stack(box_in_top_left, box_in_bottom_right)
+
             # reset block
-            block_color = choice(range(*color_pair_range))
-            block_type = choice(range(*block_type_range))
-            block_rotation = choice(range(*block_rotation_range))
-            block_init_pos = block_init_pos_map[block_type][block_rotation]
-            block_y_pos = block_init_pos[0]  # block(5x5) top left y
-            block_x_pos = block_init_pos[1]  # block(5x5) top left x
+            _set_block()
             block_lock = False
 
             # draw border
@@ -214,17 +181,14 @@ def _game(stdscr):
                 (block_y_pos, block_x_pos),
             )
             # reset score
-            score = 0
-            score_text = "Score: {}".format(score)
-            stdscr.addstr(score_pos[0], score_pos[1], score_text)
-            
+            _set_score(stdscr, 0)
             continue
 
         if game_status == STOP:
             continue
 
         if key == -1:  # not input
-            key = block_dir
+            key = curses.KEY_DOWN  # default block direction
 
         if key == curses.KEY_RIGHT:
             # move right
@@ -357,7 +321,7 @@ def _game(stdscr):
         # if DROP DONE
         if block_lock:
             # merge block stack
-            merge_score = _merge_block_stack(
+            after_erged_score = _merge_block_stack(
                 stdscr,
                 box_in_top_left,
                 box_in_bottom_right,
@@ -367,17 +331,11 @@ def _game(stdscr):
             )
 
             # update score
-            score += merge_score
-            score_text = "Score: {}".format(score)
-            stdscr.addstr(score_pos[0], score_pos[1], score_text)
+            score += after_erged_score
+            _set_score(stdscr, score)
 
             # define next block
-            block_color = _random_choice_next(block_color, *color_pair_range)
-            block_type = _random_choice_next(block_type, *block_type_range)
-            block_rotation = _random_choice_next(block_rotation, *block_rotation_range)
-            block_init_pos = block_init_pos_map[block_type][block_rotation]
-            block_y_pos = block_init_pos[0]
-            block_x_pos = block_init_pos[1]
+            block_init_pos = _set_block()
 
             # check if game over
             is_game_over = _is_game_over(box_in_top_left, (block_type, block_rotation), (block_y_pos, block_x_pos))
@@ -387,14 +345,11 @@ def _game(stdscr):
                 # stop game
                 stdscr.nodelay(0)
                 game_status = STOP
-                status_text = "Status: {}".format("OVER ")
-                stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
+                _set_status(stdscr, "OVER")
 
                 # draw part of block
                 _draw_block_if_game_over(
                     stdscr,
-                    box_in_top_left,
-                    box_in_bottom_right,
                     (block_type, block_rotation),
                     curses.color_pair(block_color),
                     block_init_pos,
@@ -411,6 +366,39 @@ def _game(stdscr):
                     block_init_pos,
                 )
                 block_lock = False
+
+
+def _set_status(stdscr, status: str):
+    status_text = "Status: {} ".format(status)
+    stdscr.addstr(*STATUS_POS, status_text)
+
+
+def _set_score(stdscr, score: int):
+    score_text = "Score: {}".format(score)
+    stdscr.addstr(*SCORE_POS, score_text)
+
+
+def _set_block_stack(box_in_top_left: tuple, box_in_bottom_right: tuple):
+    global block_stack
+    block_stack = [
+        [
+            (_block_y, _block_x, BLOCK_EMPTY, curses.color_pair(21))
+            for _block_x in range(box_in_top_left[1], box_in_bottom_right[1] + 1)
+        ]
+        for _block_y in range(box_in_top_left[0], box_in_bottom_right[0] + 1)
+    ]
+
+
+def _set_block() -> tuple:
+    global block_init_pos_map, block_y_pos, block_x_pos
+    global block_color, block_type, block_type, block_rotation
+    block_color = choice(range(*COLOR_PAIR_RANGE))
+    block_type = choice(range(*BLOCK_TYPE_RANGE))
+    block_rotation = choice(range(*BLOCK_ROTATION_RANGE))
+    block_init_pos = block_init_pos_map[block_type][block_rotation]
+    block_y_pos = block_init_pos[0]  # block(5x5) top left y
+    block_x_pos = block_init_pos[1]  # block(5x5) top left x
+    return block_init_pos
 
 
 def _draw_block_stack(stdscr, box_in_top_left: tuple, box_in_bottom_right: tuple):
@@ -442,9 +430,7 @@ def _draw_block(
                 stdscr.addstr(block_pos_next[0] + _y, block_pos_next[1] + _x, str(_block_next[_y][_x]), block_color)
 
 
-def _draw_block_if_game_over(
-    stdscr, box_in_top_left: tuple, box_in_bottom_right: tuple, block_setup: tuple, block_color, block_pos: tuple
-):
+def _draw_block_if_game_over(stdscr, block_setup: tuple, block_color, block_pos: tuple):
 
     _block_type = block_setup[0]
     _block_rotation = block_setup[1]
@@ -675,16 +661,6 @@ def _rectangle(stdscr, uly, ulx, lry, lrx):
     stdscr.addch(lry, lrx, curses.ACS_LRCORNER)  # bottom right corner
     stdscr.addch(lry, ulx, curses.ACS_LLCORNER)  # bottom left corner
     stdscr.attroff(curses.color_pair(20))
-
-
-# rgb 255 to 1000 curses color
-def _rgb_255_to_1000(rgb_tuple: tuple) -> tuple:
-    return tuple(rgb * 1000 // 255 for rgb in rgb_tuple)
-
-
-def _random_choice_next(curr: int, start: int, end: int) -> int:
-    # end is not included
-    return choice([x for x in range(start, end) if x != curr])
 
 
 def tetris_entry():
