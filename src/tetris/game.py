@@ -1,10 +1,10 @@
 import curses
-from random import randint, choice, random
+from random import choice
 
 """
 import util/block when executing game.py
 """
-from sys import path, stderr
+from sys import path
 from os.path import join, dirname
 
 path.append(join(dirname(__file__), "../"))
@@ -58,15 +58,15 @@ def _game(stdscr):
     box_top_left_y = 5
     START = 1
     STOP = 0
-    BOX_SCALE = 2
+    # BOX_SCALE = 2
     screen_height, screen_width = stdscr.getmaxyx()
-    screen_height_mid = screen_height // 2
+    # screen_height_mid = screen_height // 2
     screen_width_mid = screen_width // 2
     box_top_left = (box_top_left_x, box_top_left_y)  # (y, x)
     # box_bottom_right = ((screen_height - box_top_left[0]) // BOX_SCALE, (screen_width - box_top_left[1]) // BOX_SCALE)
     # box inside height * width = (20 ,10)
     box_bottom_right = ((31 - box_top_left[0]), (21 - box_top_left[1]))
-    box = (box_bottom_right[0] - box_top_left[0], box_bottom_right[1] - box_top_left[1])  # box height, width
+    # box = (box_bottom_right[0] - box_top_left[0], box_bottom_right[1] - box_top_left[1])  # box height, width
     # textpad.rectangle(stdscr, box_top_left[0], box_top_left[1], box_bottom_right[0], box_bottom_right[1])
     _rectangle(stdscr, box_top_left[0], box_top_left[1], box_bottom_right[0], box_bottom_right[1])
 
@@ -637,10 +637,12 @@ def _merge_block_stack(
                 _line_x_num += 1
                 # stdscr.addstr(31, 1, "_line_x_num {}, {}".format(_line_x_num, _dx))
                 # stdscr.refresh()
-
+        stdscr.addstr(41, 1, "{} ".format(_line_x_num))
+        stdscr.addstr(40, 1, "{} ".format(_block_stack_x_end))
+        stdscr.refresh()
         if _line_x_num == _block_stack_x_end:
             # for _y in range(dy - , , -1):
-
+            stdscr.addstr(39, 1, "hello world")
             for _y in range(_dy, box_in_top_left[0], -1):
                 for _x in range(0, _block_stack_x_end):
 
@@ -672,15 +674,19 @@ def _merge_block_stack(
                             BLOCK_EMPTY,
                             curses.color_pair(21),
                         )
-                    # stdscr.addstr(36, 1, "if _dy {}".format(_dy))
-                    # stdscr.refresh()
-            stdscr.nodelay(0)
-            for _idx_y in range(0, box_in_bottom_right[0] + 1 - box_in_top_left[0]):
-                for _idx_x in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
-                    _block = block_stack[_idx_y][_idx_x]
-                    stdscr.addstr(_block[0], _block[1], str(_block[2]), _block[3])
-            stdscr.nodelay(1)
-            stdscr.timeout(700)
+                        stdscr.nodelay(0)
+                        k1 = block_stack[_y - box_in_top_left[0]][_x]
+                        k2 = block_stack[_y - box_in_top_left[0] - 1][_x]
+                        # _block = block_stack[_idx_y][_idx_x]
+                        stdscr.addstr(k1[0], k1[1], str(k1[2]), k1[3])
+                        stdscr.addstr(k2[0], k2[1], str(k2[2]), k2[3])
+            # stdscr.nodelay(0)
+            # for _idx_y in range(0, box_in_bottom_right[0] + 1 - box_in_top_left[0]):
+            #     for _idx_x in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
+            #         _block = block_stack[_idx_y][_idx_x]
+            #         stdscr.addstr(_block[0], _block[1], str(_block[2]), _block[3])
+            # stdscr.nodelay(1)
+            # stdscr.timeout(700)
 
         elif _line_x_num < _block_stack_x_end:
             _dy -= 1
