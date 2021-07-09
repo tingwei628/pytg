@@ -47,25 +47,32 @@ def menu(stdscr, which_game):
             sub_menu_current_index = sub_menu_current_index - 1 if sub_menu_current_index > 0 else len(sub_menu) - 1
         elif key == curses.KEY_DOWN and menu_stage == SUB_MENU_STAGE:
             sub_menu_current_index = sub_menu_current_index + 1 if sub_menu_current_index < len(sub_menu) - 1 else 0
+        # exit sub menu
         elif (
-            key == KEY_ENTER and sub_menu_current_index == len(sub_menu) - 1 and menu_stage == SUB_MENU_STAGE
-        ) or key == KEY_ESC:
+            (key == KEY_ENTER and sub_menu_current_index == len(sub_menu) - 1) or key == KEY_ESC
+        ) and menu_stage == SUB_MENU_STAGE:
             # reset sub menu index
             sub_menu_current_index = 0
             menu_stage = MENU_STAGE
+        # load snake game
         elif key == KEY_ENTER and menu_stage == SUB_MENU_STAGE and sub_menu_current_index == sub_menu.index("Snake"):
             stdscr.clear()
             snake_entry()
             break
+        # load tetris game
         elif key == KEY_ENTER and menu_stage == SUB_MENU_STAGE and sub_menu_current_index == sub_menu.index("Tetris"):
             stdscr.clear()
             tetris_entry()
             break
-        elif key == KEY_ENTER and menu_current_index == menu_exit_idx and menu_stage == MENU_STAGE:
+        # exit game
+        elif (
+            (key == KEY_ENTER and menu_current_index == menu_exit_idx) or key == KEY_ESC
+        ) and menu_stage == MENU_STAGE:
             break
-
+        # display menu
         if menu_stage == MENU_STAGE:
             display_menu(stdscr, menu_current_index, menu, screen_height_mid, screen_width_mid)
+        # display sub menu
         elif menu_stage == SUB_MENU_STAGE:
             display_menu(stdscr, sub_menu_current_index, sub_menu, screen_height_mid, screen_width_mid)
 
