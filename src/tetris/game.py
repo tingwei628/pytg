@@ -4,7 +4,7 @@ from random import randint, choice, random
 """
 import util/block when executing game.py
 """
-from sys import path
+from sys import path, stderr
 from os.path import join, dirname
 
 path.append(join(dirname(__file__), "../"))
@@ -17,13 +17,11 @@ KEY_RIGHT: move right
 KEY_LEFT: move left
 KEY_UP: rotate (clockwise)
 z: rotate (counterclockwise)
-SPACE: sonic drop
+SPACE: drop rapidly
 s: pause/resume
 
 support:
 1.Wall kick
-2.Lock delay (when soft drop/hard drop)
-
 """
 
 TETRIS_GAME = 2
@@ -144,6 +142,7 @@ def _game(stdscr):
     )
     block_lock = False
 
+    _test_lock_time = 0
     while 1:
         key = stdscr.getch()
         if game_status == START and key == KEY_S:
@@ -258,9 +257,8 @@ def _game(stdscr):
                 block_pos_next,
             )
 
-            if block_y_pos == block_pos_next[0]:
+            if block_y_pos == block_pos_next[0] and not block_lock:
                 block_lock = True
-
             block_y_pos = block_pos_next[0]
         elif key == KEY_SPACE:
             # directly move down to block stack
@@ -281,7 +279,8 @@ def _game(stdscr):
             block_y_pos = block_pos_next[0]
 
             # avoid another new block to fall fast
-            block_lock = True
+            if not block_lock:
+                block_lock = True
         elif key == curses.KEY_UP:
             block_rotation_next = 0 if block_rotation == 3 else block_rotation + 1
             # rotate collision with block stack
@@ -331,8 +330,17 @@ def _game(stdscr):
         else:
             continue
 
+        stdscr.addstr(27, 1, "lock time {}".format(_test_lock_time))
+        stdscr.addstr(28, 1, "lock state {}   ".format(block_lock))
+        stdscr.refresh()
+
         # if DROP DONE
         if block_lock:
+            _test_lock_time += 1
+
+            stdscr.addstr(27, 1, "lock time {}".format(_test_lock_time))
+            stdscr.addstr(28, 1, "lock state {}".format(block_lock))
+            stdscr.refresh()
             # merge block stack
             _merge_block_stack(
                 stdscr,
@@ -344,8 +352,6 @@ def _game(stdscr):
             )
 
             # update score
-
-            # _draw_block_stack(stdscr, box_in_top_left, box_in_bottom_right)
 
             # define next block
             block_color = _random_choice_next(block_color, *color_pair_range)
@@ -387,6 +393,9 @@ def _game(stdscr):
                     block_init_pos,
                 )
                 block_lock = False
+                # stdscr.addstr(27, 1, "lock time {}".format(_test_lock_time))
+                # stdscr.addstr(28, 1, "lock state {}".format(block_lock))
+                # stdscr.refresh()
 
 
 def _draw_block_stack(stdscr, box_in_top_left: tuple, box_in_bottom_right: tuple):
@@ -595,52 +604,100 @@ def _merge_block_stack(
     # if any the possible lines to be deleted
     # delete and move down - deleted blocks to new position
     # repeat (until it has no possible lines)
-    _line_x_total = box_in_bottom_right[1] + 1 - box_in_top_left[1]
     _block_stack_x_end = box_in_bottom_right[1] + 1 - box_in_top_left[1]
-
     _line_x_num = 0
-    _line_num = 0
+    _dy = box_in_bottom_right[0]
+    _test_2 = 0
 
-    while 1:
-        for _y in range(box_in_bottom_right[0], box_in_top_left[0] - 1, -1):
-            for _x in range(0, _block_stack_x_end):
-                if block_stack[_y - box_in_top_left[0]][_x][2] > BLOCK_EMPTY:
-                    _line_x_num += 1
+    # stdscr.addstr(
+    #     33,
+    #     1,
+    #     "start _dy {}, box_in_top_left[0] {}, _block_stack_x_end {}".format(
+    #         _dy, box_in_top_left[0], _block_stack_x_end
+    #     ),
+    # )
+    # stdscr.refresh()
+    # stdscr.nodelay(0)
+    while _dy > box_in_top_left[0]:
+        # try:
+        # a = 1
+        # stdscr.addstr(38, 1, "before a {} ".format(a))
+        # stdscr.refresh()
+        # stdscr.addstr(39, 1, "after a {} ".format(a))
+        # stdscr.addstr(34, 1, k)
+        # stdscr.refresh()
+        # stdscr.addstr(39, 1, "after a {}".format(a))
 
-            if _line_x_num == _line_x_total:
+        for _dx in range(0, _block_stack_x_end):
+            # stdscr.addstr(2, 1, "{},{}".format(_dy - box_in_top_left[0], _dx))
+            # return
+            # stdscr.addstr(32, 1, "_dy {}, _block_stack_x_end {}".format(_dy, _block_stack_x_end))
+            # stdscr.refresh()
+            if block_stack[_dy - box_in_top_left[0]][_dx][2] > BLOCK_EMPTY:
+                _line_x_num += 1
+                # stdscr.addstr(31, 1, "_line_x_num {}, {}".format(_line_x_num, _dx))
+                # stdscr.refresh()
+
+        if _line_x_num == _block_stack_x_end:
+            # for _y in range(dy - , , -1):
+
+            for _y in range(_dy, box_in_top_left[0], -1):
                 for _x in range(0, _block_stack_x_end):
-                    _line_num = 1
-                    _temp2 = block_stack[_y - box_in_top_left[0] - 1][_x]
-                    if block_stack[_y - box_in_top_left[0] - 1][_x][2] > BLOCK_EMPTY:
+
+                    # _deleted_temp = block_stack[_y - box_in_top_left[0]][_x]
+                    _moved_temp = block_stack[_y - box_in_top_left[0] - 1][_x]
+
+                    if _moved_temp[2] > BLOCK_EMPTY:
+                        _test_2 += 1
+                        # stdscr.addstr(30, 1, "_test_2 {}".format(_test_2))
+                        # stdscr.refresh()
+                        # clear deleted line
+                        # block_stack[_dy - box_in_top_left[0]][_x] = (
+                        #     _deleted_temp[0],
+                        #     _deleted_temp[1],
+                        #     BLOCK_EMPTY,
+                        #     curses.color_pair(21),
+                        # )
                         # move down
-                        block_stack[_y - box_in_top_left[0]][_x] = (_y, _temp2[1], _temp2[2], _temp2[3])
+                        block_stack[_y - box_in_top_left[0]][_x] = (
+                            _y,
+                            _moved_temp[1],
+                            _moved_temp[2],
+                            _moved_temp[3],
+                        )
                         # clear original
                         block_stack[_y - box_in_top_left[0] - 1][_x] = (
-                            _temp2[0],
-                            _temp2[1],
+                            _moved_temp[0],
+                            _moved_temp[1],
                             BLOCK_EMPTY,
                             curses.color_pair(21),
                         )
-                        _line_num = 0
-            elif _line_x_num < _line_x_total and _x == _block_stack_x_end - 1:
-                break
-            _line_x_num = 0
+                    # stdscr.addstr(36, 1, "if _dy {}".format(_dy))
+                    # stdscr.refresh()
+            stdscr.nodelay(0)
+            for _idx_y in range(0, box_in_bottom_right[0] + 1 - box_in_top_left[0]):
+                for _idx_x in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
+                    _block = block_stack[_idx_y][_idx_x]
+                    stdscr.addstr(_block[0], _block[1], str(_block[2]), _block[3])
+            stdscr.nodelay(1)
+            stdscr.timeout(700)
 
-        stdscr.addstr(2, 1, "A")
-        # no possible lines
-        if _line_num == 0:
-            break
+        elif _line_x_num < _block_stack_x_end:
+            _dy -= 1
 
-        # delete and move down
-        # for _y in range(box_in_bottom_right[0], box_in_top_left[0] - 1, -1):
-        #     for _x in range(0, _block_stack_x_end):
-        #         pass
-    stdscr.addstr(2, 1, "B")
+        _line_x_num = 0
+        # _dy -= 1
+        # stdscr.addstr(29, 1, "_test_1 {}, _dy {}, {} ".format(_test_1, _dy, _dy == 60))
+        # stdscr.refresh()
+
+    # stdscr.nodelay(1)
+    # stdscr.timeout(700)
     # draw block stack after deleting and moving down
-    for _idx_y in range(0, box_in_bottom_right[0] + 1 - box_in_top_left[0]):
-        for _idx_x in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
-            _block = block_stack[_idx_y][_idx_x]
-            stdscr.addstr(_block[0], _block[1], str(_block[2]), _block[3])
+
+    # for _idx_y in range(0, box_in_bottom_right[0] + 1 - box_in_top_left[0]):
+    #     for _idx_x in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
+    #         _block = block_stack[_idx_y][_idx_x]
+    #         stdscr.addstr(_block[0], _block[1], str(_block[2]), _block[3])
 
 
 def _rectangle(stdscr, uly, ulx, lry, lrx):
