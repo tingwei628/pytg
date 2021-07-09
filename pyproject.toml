@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pytg"
-version = "0.1.0"
+version = "1.0.0"
 description = ""
 authors = ["tingwei628"]
 repository = "https://github.com/tingwei628/pytg"
