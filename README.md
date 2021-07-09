@@ -18,7 +18,9 @@ python src/main.py
 
 https://user-images.githubusercontent.com/8874154/123507640-18402a80-d69d-11eb-9fbc-7d197283a6c5.mov
 
+- Tetris
 
+https://user-images.githubusercontent.com/8874154/125102496-ebb0f780-e10d-11eb-85a3-4267d7fef7af.mov
 
 ### Acknowledgements
 
