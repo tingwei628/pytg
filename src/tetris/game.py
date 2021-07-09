@@ -121,9 +121,16 @@ def _game(stdscr):
         for _block_y in range(box_in_top_left[0], box_in_bottom_right[0] + 1)
     ]
 
-    # status_text = "Status: {}".format("START")
-    # stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
-    # stdscr.attroff(curses.color_pair(13))
+    # score
+    score = 0
+    score_pos = (2, 5)
+    score_text = "Score: {}".format(score)
+    stdscr.addstr(score_pos[0], score_pos[1], score_text)
+
+    # status
+    status_text = "Status: {}".format("START")
+    status_pos = (3, 5)
+    stdscr.addstr(status_pos[0], status_pos[1], status_text)
 
     # draw block_stack
     _draw_block_stack(stdscr, box_in_top_left, box_in_bottom_right)
@@ -148,7 +155,7 @@ def _game(stdscr):
             stdscr.nodelay(0)
             game_status = STOP
             status_text = "Status: {}".format("STOP ")
-            stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
+            stdscr.addstr(status_pos[0], status_pos[1], status_text)
             continue
 
         elif game_status == STOP and key == KEY_S:
@@ -156,7 +163,7 @@ def _game(stdscr):
             stdscr.timeout(game_timeout)
             game_status = START
             status_text = "Status: {}".format("START")
-            stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
+            stdscr.addstr(status_pos[0], status_pos[1], status_text)
             continue
 
         elif key == KEY_ESC:  # exit to sub_menu
@@ -174,25 +181,43 @@ def _game(stdscr):
             # status
             game_status = START
             status_text = "Status: {}".format("START")
-            stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
-            # # snake direction
-            # snake_head_dir = curses.KEY_RIGHT
-            # # box
-            # textpad.rectangle(stdscr, box_top_left[0], box_top_left[1], box_bottom_right[0], box_bottom_right[1])
-            # # snake body
-            # snake_body = [
-            #     (screen_height_mid, screen_width_mid - 1),
-            #     (screen_height_mid, screen_width_mid),
-            #     (screen_height_mid, screen_width_mid + 1),
-            # ]
-            # # score
-            # score = 0
-            # update_score(score, screen_width_mid, stdscr)
-            # # food
-            # stdscr.attron(curses.color_pair(2))
-            # snake_food_pos = create_food(snake_body, box_top_left, box_bottom_right)
-            # stdscr.addstr(snake_food_pos[0], snake_food_pos[1], "O")
-            # stdscr.attroff(curses.color_pair(2))
+            stdscr.addstr(status_pos[0], status_pos[1], status_text)
+
+            # reset block_stack
+            block_stack = [
+                [
+                    (_block_y, _block_x, BLOCK_EMPTY, curses.color_pair(21))
+                    for _block_x in range(box_in_top_left[1], box_in_bottom_right[1] + 1)
+                ]
+                for _block_y in range(box_in_top_left[0], box_in_bottom_right[0] + 1)
+            ]
+            # reset block
+            block_color = choice(range(*color_pair_range))
+            block_type = choice(range(*block_type_range))
+            block_rotation = choice(range(*block_rotation_range))
+            block_init_pos = block_init_pos_map[block_type][block_rotation]
+            block_y_pos = block_init_pos[0]  # block(5x5) top left y
+            block_x_pos = block_init_pos[1]  # block(5x5) top left x
+            block_lock = False
+
+            # draw border
+            _rectangle(stdscr, box_top_left[0], box_top_left[1], box_bottom_right[0], box_bottom_right[1])
+            # draw block_stack
+            _draw_block_stack(stdscr, box_in_top_left, box_in_bottom_right)
+            # draw new block
+            _draw_block(
+                stdscr,
+                (block_type, block_rotation),
+                (block_type, block_rotation),
+                curses.color_pair(block_color),
+                (block_y_pos, block_x_pos),
+                (block_y_pos, block_x_pos),
+            )
+            # reset score
+            score = 0
+            score_text = "Score: {}".format(score)
+            stdscr.addstr(score_pos[0], score_pos[1], score_text)
+            
             continue
 
         if game_status == STOP:
@@ -329,20 +354,10 @@ def _game(stdscr):
         else:
             continue
 
-        # stdscr.addstr(27, 1, "lock time {}".format(_test_lock_time))
-        # stdscr.addstr(28, 1, "lock state {}   ".format(block_lock))
-        # stdscr.refresh()
-
         # if DROP DONE
         if block_lock:
-            # _test_lock_time += 1
-
-            # stdscr.addstr(27, 1, "lock time {}".format(_test_lock_time))
-            # stdscr.addstr(28, 1, "lock state {}".format(block_lock))
-            # stdscr.refresh()
-
             # merge block stack
-            _merge_block_stack(
+            merge_score = _merge_block_stack(
                 stdscr,
                 box_in_top_left,
                 box_in_bottom_right,
@@ -352,6 +367,9 @@ def _game(stdscr):
             )
 
             # update score
+            score += merge_score
+            score_text = "Score: {}".format(score)
+            stdscr.addstr(score_pos[0], score_pos[1], score_text)
 
             # define next block
             block_color = _random_choice_next(block_color, *color_pair_range)
@@ -393,9 +411,6 @@ def _game(stdscr):
                     block_init_pos,
                 )
                 block_lock = False
-                # stdscr.addstr(27, 1, "lock time {}".format(_test_lock_time))
-                # stdscr.addstr(28, 1, "lock state {}".format(block_lock))
-                # stdscr.refresh()
 
 
 def _draw_block_stack(stdscr, box_in_top_left: tuple, box_in_bottom_right: tuple):
@@ -582,6 +597,7 @@ def _merge_block_stack(
     _block_len = len(_block)
     _block_y_pos = block_pos[0]
     _block_x_pos = block_pos[1]
+    _score_line = 0
     # merge block into block stack
     for _y in range(_block_len):
         for _x in range(_block_len):
@@ -613,6 +629,7 @@ def _merge_block_stack(
                 _line_x_num += 1
 
         if _line_x_num == _block_stack_x_end:
+            _score_line += 1
             for _y in range(_dy, box_in_top_left[0], -1):
                 for _x in range(0, _block_stack_x_end):
                     _moved_temp = block_stack[_y - box_in_top_left[0] - 1][_x]
@@ -639,6 +656,8 @@ def _merge_block_stack(
         for _idx_x in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
             _block = block_stack[_idx_y][_idx_x]
             stdscr.addstr(_block[0], _block[1], str(_block[2]), _block[3])
+
+    return _score_line
 
 
 def _rectangle(stdscr, uly, ulx, lry, lrx):
