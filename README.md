@@ -20,7 +20,8 @@ https://user-images.githubusercontent.com/8874154/123507640-18402a80-d69d-11eb-9
 
 - Tetris
 
-https://user-images.githubusercontent.com/8874154/125102496-ebb0f780-e10d-11eb-85a3-4267d7fef7af.mov
+https://user-images.githubusercontent.com/8874154/125103277-c53f8c00-e10e-11eb-8017-431dbd158736.mov
+
 
 ### Acknowledgements
 
