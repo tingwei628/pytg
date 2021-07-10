@@ -133,3 +133,6 @@ dmypy.json
 .vscode/
 
 #poetry
+
+#DS_Store
+.DS_Store
