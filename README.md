@@ -2,7 +2,7 @@
 terminal based game in python
 
 [![build](https://github.com/tingwei628/pytg/actions/workflows/build.yml/badge.svg)](https://github.com/tingwei628/pytg/actions/workflows/build.yml)
-
+[![codecov](https://codecov.io/gh/tingwei628/pytg/branch/main/graph/badge.svg?token=HQ3IQRJB32)](https://codecov.io/gh/tingwei628/pytg)
 ## Get Started
 
 ```sh
