@@ -14,13 +14,8 @@ python src/main.py
 - Tetris
 
 ## Demo
-- Snake
-
-https://user-images.githubusercontent.com/8874154/123507640-18402a80-d69d-11eb-9fbc-7d197283a6c5.mov
-
-- Tetris
-
-https://user-images.githubusercontent.com/8874154/125103277-c53f8c00-e10e-11eb-8017-431dbd158736.mov
+- [Snake](https://www.youtube.com/watch?v=wscPLURb8YU)
+- [Tetris](https://www.youtube.com/watch?v=irQpzvLx0f4)
 
 
 ### Acknowledgements
