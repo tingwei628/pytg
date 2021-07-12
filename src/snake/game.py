@@ -150,39 +150,19 @@ def _game(stdscr):
 
         snake_head = snake_body[-1]
         if key == curses.KEY_RIGHT and snake_head_dir != curses.KEY_LEFT:
-            snake_head_next_x = (
-                (box_top_left[1] + snake_step)
-                if (snake_head[1] + snake_step - box_top_left[1]) == box[1]
-                else snake_head[1] + snake_step
-            )
-            snake_head_next = (snake_head[0], snake_head_next_x)
+            snake_head_next = (snake_head[0], _get_head_next_x(key))
             _append_snake(stdscr, snake_head_next)
             snake_head_dir = key
         elif key == curses.KEY_LEFT and snake_head_dir != curses.KEY_RIGHT:
-            snake_head_next_x = (
-                (box_bottom_right[1] - snake_step)
-                if (snake_head[1] - snake_step - box_top_left[1]) == 0
-                else snake_head[1] - snake_step
-            )
-            snake_head_next = (snake_head[0], snake_head_next_x)
+            snake_head_next = (snake_head[0], _get_head_next_x(key))
             _append_snake(stdscr, snake_head_next)
             snake_head_dir = key
         elif key == curses.KEY_DOWN and snake_head_dir != curses.KEY_UP:
-            snake_head_next_y = (
-                (box_top_left[0] + snake_step)
-                if (snake_head[0] + snake_step - box_top_left[0]) == box[0]
-                else snake_head[0] + snake_step
-            )
-            snake_head_next = (snake_head_next_y, snake_head[1])
+            snake_head_next = (_get_head_next_y(key), snake_head[1])
             _append_snake(stdscr, snake_head_next)
             snake_head_dir = key
         elif key == curses.KEY_UP and snake_head_dir != curses.KEY_DOWN:
-            snake_head_next_y = (
-                (box_bottom_right[0] - snake_step)
-                if (snake_head[0] - snake_step - box_top_left[0]) == 0
-                else snake_head[0] - snake_step
-            )
-            snake_head_next = (snake_head_next_y, snake_head[1])
+            snake_head_next = (_get_head_next_y(key), snake_head[1])
             _append_snake(stdscr, snake_head_next)
             snake_head_dir = key
         else:
@@ -222,29 +202,32 @@ def _create_food():
             food = ()
 
 
-def _get_head_next_x(key, box_top_left, box_bottom_right, snake_step):
-    # right
-    # key == curses.KEY_LEFT
-    # key == curses.KEY_RIGHT
-    # _border =
-    # snake_head_next_x = (
-    #             (box_top_left[1] + snake_step)
-    #             if (snake_head[1] + snake_step - box_top_left[1]) == box[1]
-    #             else snake_head[1] + snake_step
-    #         )
-    # left
-    #   snake_head_next_x = (
-    #             (box_bottom_right[1] - snake_step)
-    #             if (snake_head[1] - snake_step - box_top_left[1]) == 0
-    #             else snake_head[1] - snake_step
-    #         )
-    pass
+def _get_head_next_x(key):
+    snake_head = snake_body[-1]
+    _dict = {
+        curses.KEY_RIGHT: {"dir": 1, "next_start_if_hit": box_top_left[1], "hit_condition": box[1]},
+        curses.KEY_LEFT: {"dir": -1, "next_start_if_hit": box_bottom_right[1], "hit_condition": 0},
+    }
+    _obj = _dict[key]
+    return (
+        (_obj["next_start_if_hit"] + _obj["dir"] * snake_step)
+        if (snake_head[1] + _obj["dir"] * snake_step - box_top_left[1]) == _obj["hit_condition"]
+        else snake_head[1] + _obj["dir"] * snake_step
+    )
 
 
-def _get_head_next_y():
-    # down
-    # up
-    pass
+def _get_head_next_y(key):
+    snake_head = snake_body[-1]
+    _dict = {
+        curses.KEY_DOWN: {"dir": 1, "next_start_if_hit": box_top_left[0], "hit_condition": box[0]},
+        curses.KEY_UP: {"dir": -1, "next_start_if_hit": box_bottom_right[0], "hit_condition": 0},
+    }
+    _obj = _dict[key]
+    return (
+        (_obj["next_start_if_hit"] + _obj["dir"] * snake_step)
+        if (snake_head[0] + _obj["dir"] * snake_step - box_top_left[0]) == _obj["hit_condition"]
+        else snake_head[0] + _obj["dir"] * snake_step
+    )
 
 
 def _append_snake(stdscr, snake_head_next):
