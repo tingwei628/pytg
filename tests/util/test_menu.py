@@ -7,7 +7,8 @@ stub game_entry()
 """
 import pytest
 
-
+# test different menu pos
 @pytest.mark.menu
 def test_menu():
+    # mock keyboard input
     pass

@@ -71,10 +71,60 @@ parameters
 
 
 @pytest.mark.tetris
-def test_tetris():
+def test__game():
+    # mock keyboard input
+    pass
+
+
+@pytest.mark.tetris
+def test__block_pos_in_block_stack():
     pass
 
 
 @pytest.mark.tetris
 def test__move_block():
+    pass
+
+
+@pytest.mark.tetris
+def test__rotate_block():
+    pass
+
+
+"""
+test fixture
+"""
+
+# test fixture
+@pytest.mark.tetris
+def test__set_block_stack():
+    pass
+
+
+@pytest.mark.tetris
+def test__is_game_over():
+    pass
+
+
+# test different position
+@pytest.mark.tetris
+def test__is_block_pos_overlap():
+    pass
+
+
+@pytest.mark.tetris
+def test__merge_block_stack():
+    # merge
+    # deleted
+    # move
+    pass
+
+
+@pytest.mark.tetris
+def test__set_status():
+    pass
+
+
+@pytest.mark.tetris
+def test__set_score():
     pass
