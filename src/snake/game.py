@@ -2,6 +2,13 @@ import curses
 from random import randint
 from curses import textpad
 
+"""
+import menu_entry from util.menu
+"""
+from sys import path
+from os.path import join, dirname
+
+path.append(join(dirname(__file__), "../"))
 
 """
 1. restart (ENTER)
@@ -15,6 +22,27 @@ https://stackoverflow.com/questions/44014715/is-it-possible-to-get-the-default-b
 """
 
 SNAKE_GAME = 1
+INITIAL_TIMEOUT = 100
+KEY_ESC = 27  # exit
+KEY_SPACE = 32  # pause/resume
+KEY_ENTER = 10  # reset (restart)
+START = 1
+STOP = 0
+
+# snake body
+snake_body = []
+snake_step = 1
+# snake head direction
+snake_head_dir = -1
+score = 0
+game_status = START
+
+screen_width_mid = 0
+screen_height_mid = 0
+
+box_top_left = ()
+box_bottom_right = ()
+box = ()
 
 
 def _game(stdscr):
@@ -22,17 +50,20 @@ def _game(stdscr):
     # initial setting
     curses.curs_set(0)
     stdscr.nodelay(1)
-    INITIAL_TIMEOUT = 100
     snake_timeout = INITIAL_TIMEOUT
     stdscr.timeout(snake_timeout)
     box_top_left_x = 5
     box_top_left_y = 5
-    KEY_ESC = 27  # exit
-    KEY_SPACE = 32  # pause/resume
-    KEY_ENTER = 10  # reset (restart)
-    START = 1
-    STOP = 0
     screen_height, screen_width = stdscr.getmaxyx()
+
+    global screen_width_mid, screen_height_mid
+    global box_top_left
+    global box_bottom_right
+    global box
+    global snake_body, snake_head_dir
+    global score
+    global game_status
+
     screen_height_mid = screen_height // 2
     screen_width_mid = screen_width // 2
     box_top_left = (box_top_left_x, box_top_left_y)  # (y, x)
@@ -40,33 +71,29 @@ def _game(stdscr):
     box = (box_bottom_right[0] - box_top_left[0], box_bottom_right[1] - box_top_left[1])  # box height, width
     textpad.rectangle(stdscr, box_top_left[0], box_top_left[1], box_bottom_right[0], box_bottom_right[1])
 
-    # snake body
+    # set snake body
     snake_body = [
         (screen_height_mid, screen_width_mid - 1),  # snake tail
         (screen_height_mid, screen_width_mid),
         (screen_height_mid, screen_width_mid + 1),  # snake head position
     ]
-    snake_step = 1
     # snake head direction
     snake_head_dir = curses.KEY_RIGHT
 
+    # init color pair
     curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_GREEN)
     curses.init_pair(2, curses.COLOR_RED, curses.COLOR_RED)
-    stdscr.attron(curses.color_pair(1))
+
     for y, x in snake_body:
-        stdscr.addstr(y, x, "|")
-    stdscr.attroff(curses.color_pair(1))
+        stdscr.addstr(y, x, "|", curses.color_pair(1))
 
-    stdscr.attron(curses.color_pair(2))
-    snake_food_pos = _create_food(snake_body, box_top_left, box_bottom_right)
-    stdscr.addstr(snake_food_pos[0], snake_food_pos[1], "O")
-    stdscr.attroff(curses.color_pair(2))
+    snake_food_pos = _create_food()
+    stdscr.addstr(snake_food_pos[0], snake_food_pos[1], "O", curses.color_pair(2))
     score = 0
-    _update_score(score, screen_width_mid, stdscr)
-
+    _update_score(score, stdscr)
+    # set game status
     game_status = START
-    status_text = "Status: {}".format("START")
-    stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
+    _update_status("START", stdscr)
 
     while 1:
         key = stdscr.getch()
@@ -74,16 +101,14 @@ def _game(stdscr):
         if game_status == START and key == KEY_SPACE:
             stdscr.nodelay(0)
             game_status = STOP
-            status_text = "Status: {}".format("STOP ")
-            stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
+            _update_status("STOP ", stdscr)
             continue
 
         elif game_status == STOP and key == KEY_SPACE:
             stdscr.nodelay(1)
             stdscr.timeout(snake_timeout)
             game_status = START
-            status_text = "Status: {}".format("START")
-            stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
+            _update_status("START", stdscr)
             continue
 
         elif key == KEY_ESC:  # exit to sub_menu
@@ -101,8 +126,7 @@ def _game(stdscr):
             stdscr.timeout(snake_timeout)
             # status
             game_status = START
-            status_text = "Status: {}".format("START")
-            stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
+            _update_status("START", stdscr)
             # snake direction
             snake_head_dir = curses.KEY_RIGHT
             # box
@@ -115,12 +139,10 @@ def _game(stdscr):
             ]
             # score
             score = 0
-            _update_score(score, screen_width_mid, stdscr)
+            _update_score(score, stdscr)
             # food
-            stdscr.attron(curses.color_pair(2))
-            snake_food_pos = _create_food(snake_body, box_top_left, box_bottom_right)
-            stdscr.addstr(snake_food_pos[0], snake_food_pos[1], "O")
-            stdscr.attroff(curses.color_pair(2))
+            snake_food_pos = _create_food()
+            stdscr.addstr(snake_food_pos[0], snake_food_pos[1], "O", curses.color_pair(2))
             continue
 
         if key == -1:  # not input
@@ -134,7 +156,7 @@ def _game(stdscr):
                 else snake_head[1] + snake_step
             )
             snake_head_next = (snake_head[0], snake_head_next_x)
-            _append_snake(stdscr, snake_body, snake_head_next)
+            _append_snake(stdscr, snake_head_next)
             snake_head_dir = key
         elif key == curses.KEY_LEFT and snake_head_dir != curses.KEY_RIGHT:
             snake_head_next_x = (
@@ -143,7 +165,7 @@ def _game(stdscr):
                 else snake_head[1] - snake_step
             )
             snake_head_next = (snake_head[0], snake_head_next_x)
-            _append_snake(stdscr, snake_body, snake_head_next)
+            _append_snake(stdscr, snake_head_next)
             snake_head_dir = key
         elif key == curses.KEY_DOWN and snake_head_dir != curses.KEY_UP:
             snake_head_next_y = (
@@ -152,7 +174,7 @@ def _game(stdscr):
                 else snake_head[0] + snake_step
             )
             snake_head_next = (snake_head_next_y, snake_head[1])
-            _append_snake(stdscr, snake_body, snake_head_next)
+            _append_snake(stdscr, snake_head_next)
             snake_head_dir = key
         elif key == curses.KEY_UP and snake_head_dir != curses.KEY_DOWN:
             snake_head_next_y = (
@@ -161,19 +183,17 @@ def _game(stdscr):
                 else snake_head[0] - snake_step
             )
             snake_head_next = (snake_head_next_y, snake_head[1])
-            _append_snake(stdscr, snake_body, snake_head_next)
+            _append_snake(stdscr, snake_head_next)
             snake_head_dir = key
         else:
             continue
 
         snake_head = snake_body[-1]
         if snake_head == snake_food_pos:
-            stdscr.attron(curses.color_pair(2))
-            snake_food_pos = _create_food(snake_body, box_top_left, box_bottom_right)
-            stdscr.addstr(snake_food_pos[0], snake_food_pos[1], "O")
-            stdscr.attroff(curses.color_pair(2))
+            snake_food_pos = _create_food()
+            stdscr.addstr(snake_food_pos[0], snake_food_pos[1], "O", curses.color_pair(2))
             score += 1
-            _update_score(score, screen_width_mid, stdscr)
+            _update_score(score, stdscr)
             # increase speed of snake
             """
             snake_timeout = snake_timeout - len(snake_body) % 90
@@ -182,15 +202,14 @@ def _game(stdscr):
         elif snake_head in snake_body[:-1]:
             stdscr.nodelay(0)
             game_status = STOP
-            status_text = "Status: {}".format("OVER ")
-            stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
+            _update_status("OVER ", stdscr)
         else:
             snake_tail = snake_body[0]
             stdscr.addstr(snake_tail[0], snake_tail[1], " ")
             snake_body.pop(0)
 
 
-def _create_food(snake_body, box_top_left, box_bottom_right):
+def _create_food():
     food = ()  # empty food (y, x)
     while food == ():
         food = (
@@ -203,16 +222,45 @@ def _create_food(snake_body, box_top_left, box_bottom_right):
             food = ()
 
 
-def _append_snake(stdscr, snake_body, snake_head_next):
-    stdscr.attron(curses.color_pair(1))
-    stdscr.addstr(snake_head_next[0], snake_head_next[1], "|")
+def _get_head_next_x(key, box_top_left, box_bottom_right, snake_step):
+    # right
+    # key == curses.KEY_LEFT
+    # key == curses.KEY_RIGHT
+    # _border =
+    # snake_head_next_x = (
+    #             (box_top_left[1] + snake_step)
+    #             if (snake_head[1] + snake_step - box_top_left[1]) == box[1]
+    #             else snake_head[1] + snake_step
+    #         )
+    # left
+    #   snake_head_next_x = (
+    #             (box_bottom_right[1] - snake_step)
+    #             if (snake_head[1] - snake_step - box_top_left[1]) == 0
+    #             else snake_head[1] - snake_step
+    #         )
+    pass
+
+
+def _get_head_next_y():
+    # down
+    # up
+    pass
+
+
+def _append_snake(stdscr, snake_head_next):
+    global snake_body
+    stdscr.addstr(snake_head_next[0], snake_head_next[1], "|", curses.color_pair(1))
     snake_body.append(snake_head_next)
-    stdscr.attroff(curses.color_pair(1))
 
 
-def _update_score(score, screen_width_mid, stdscr):
+def _update_score(score, stdscr):
     score_text = "Score: {}".format(score)
     stdscr.addstr(1, screen_width_mid - len(score_text) // 2, score_text)
+
+
+def _update_status(status, stdscr):
+    status_text = "Status: {}".format(status)
+    stdscr.addstr(3, screen_width_mid - len(status_text) // 2, status_text)
 
 
 def snake_entry():
