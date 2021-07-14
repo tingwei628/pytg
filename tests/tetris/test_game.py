@@ -1,5 +1,8 @@
 from src.tetris.game import tetris_entry, _move_block
+
+# from pytest_mock import mocker, MockFixture
 import pytest
+from unittest import mock
 
 """
 test fixture -> global variable
@@ -42,7 +45,44 @@ mocker.spy
 global variable
 parameterize fixture
 parameterize params  to fixture by using "indirect"
+
+
+mock
+assert called_once
+assert called
 """
+
+
+def m1_base():
+    return 3
+
+
+def m1():
+    return m1_base()
+
+
+@mock.patch("tests.tetris.test_game.m1_base")
+@pytest.mark.parametrize("x, expected", [("a", "aaa")], indirect=["x"])
+@pytest.mark.tetris
+def test_mock2(mock_m1_base, x, expected):
+    # mock_m1_base = mocker.patch("tests.tetris.test_game.m1_base")
+    mock_m1_base.return_value = 2
+    assert m1() == 2
+    assert x == expected
+    mock_m1_base.assert_called_once()
+
+
+# @mocker.patch("m1")
+@pytest.mark.tetris
+def test_mock1(mocker):
+    # m2 = mocker.MagicMock(return_value=2, anything_you_want=100)
+    m2 = mocker.MagicMock(**{"return_value": 2, "anything_you_want": 100, "prop.return_value": 1})
+
+    assert m2() == 2
+    assert m2.anything_you_want == 100
+    assert m2.prop() == 1
+    m2.assert_called_once()
+    # mocker.spy()
 
 
 @pytest.mark.tetris
