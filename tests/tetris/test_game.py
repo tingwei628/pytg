@@ -50,6 +50,12 @@ parameterize params  to fixture by using "indirect"
 mock
 assert called_once
 assert called
+
+
+side_effect()
+reset_mock()
+
+
 """
 
 
@@ -59,6 +65,27 @@ def m1_base():
 
 def m1():
     return m1_base()
+
+
+def m2_base():
+    return 5
+
+
+def m2():
+    return m2_base()
+
+
+# order of decorator
+@mock.patch("tests.tetris.test_game.m2_base")
+@mock.patch("tests.tetris.test_game.m1_base")
+# @mock.patch("tests.tetris.test_game.m2_base", return_value=500)
+# @mock.patch("tests.tetris.test_game.m1_base", return_value=300)
+@pytest.mark.tetris
+def test_mock3(mock_m1_base, mock_m2_base):
+    mock_m1_base.return_value = 300
+    mock_m2_base.return_value = 500
+    assert m1() == 300
+    assert m2() == 500
 
 
 @mock.patch("tests.tetris.test_game.m1_base")
@@ -72,16 +99,17 @@ def test_mock2(mock_m1_base, x, expected):
     mock_m1_base.assert_called_once()
 
 
-# @mocker.patch("m1")
 @pytest.mark.tetris
 def test_mock1(mocker):
     # m2 = mocker.MagicMock(return_value=2, anything_you_want=100)
+    # **{}: it packs all key-values to single dict to pass them to function
     m2 = mocker.MagicMock(**{"return_value": 2, "anything_you_want": 100, "prop.return_value": 1})
 
     assert m2() == 2
     assert m2.anything_you_want == 100
     assert m2.prop() == 1
     m2.assert_called_once()
+    m2.assert_called_once_with()  # m2(args)
     # mocker.spy()
 
 
