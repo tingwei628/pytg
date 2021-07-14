@@ -41,7 +41,20 @@ mocker.spy
 """
 global variable
 parameterize fixture
+parameterize params  to fixture by using "indirect"
 """
+
+
+@pytest.mark.tetris
+@pytest.mark.parametrize("x, expected", [("a", "aaa")], indirect=["x"])
+def test_indirect(x, expected):
+    assert x == expected
+    # assert y == "b"
+
+
+@pytest.mark.tetris
+def test_f2(tetris_fixture):
+    assert tetris_fixture == "ok"
 
 
 # @pytest.fixture(scope="module", params=["start", "stop"])
@@ -68,6 +81,12 @@ parameters
 # @pytest.mark.parametrize("numbers,output", [([], 0), ([10, 20, 30], 60), ([0.1, 1.2, 2.3, 3.4, 4.5], 11.5)])
 # def test_mysum(numbers, output):
 #     assert mysum(numbers) == output
+
+
+@pytest.mark.tetris
+@pytest.mark.parametrize("a,b", [(1, 1), (2, 2)], ids=["this is 1", "this is 2"])  # ids -> test ids
+def test_1(a, b):
+    assert a == b
 
 
 @pytest.mark.tetris

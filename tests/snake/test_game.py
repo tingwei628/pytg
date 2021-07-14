@@ -1,6 +1,12 @@
 from src.snake.game import snake_entry
 import pytest
 
+
+@pytest.mark.snake
+def test_f1(snake_fixture):
+    assert snake_fixture == "ok"
+
+
 # test fixture global variable
 @pytest.mark.snake
 def test__game():
