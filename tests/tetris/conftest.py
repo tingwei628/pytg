@@ -7,7 +7,7 @@ def tetris_fixture():
 
 
 @pytest.fixture()
-def x(request):
+def x_fixture(request):
     return request.param * 3
 
 

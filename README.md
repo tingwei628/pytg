@@ -17,6 +17,10 @@ python src/main.py
 - [Snake](https://www.youtube.com/watch?v=wscPLURb8YU)
 - [Tetris](https://www.youtube.com/watch?v=irQpzvLx0f4)
 
+## Test
+```sh
+pytest
+```
 
 ### Acknowledgements
 

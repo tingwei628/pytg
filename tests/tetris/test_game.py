@@ -11,22 +11,6 @@ parameters -> different pos, collision
 assert -> status/score
 marker -> run test only tetris or snake
 
-
-monkeypatch
-    A convenient fixture for monkey-patching.
-
-    The fixture provides these methods to modify objects, dictionaries or
-    os.environ::
-
-        monkeypatch.setattr(obj, name, value, raising=True)
-        monkeypatch.delattr(obj, name, raising=True)
-        monkeypatch.setitem(mapping, name, value)
-        monkeypatch.delitem(obj, name, raising=True)
-        monkeypatch.setenv(name, value, prepend=False)
-        monkeypatch.delenv(name, raising=True)
-        monkeypatch.syspath_prepend(path)
-        monkeypatch.chdir(path)
-
 pytest -v -m tetris
 """
 
@@ -89,13 +73,13 @@ def test_mock3(mock_m1_base, mock_m2_base):
 
 
 @mock.patch("tests.tetris.test_game.m1_base")
-@pytest.mark.parametrize("x, expected", [("a", "aaa")], indirect=["x"])
+@pytest.mark.parametrize("x_fixture, expected", [("a", "aaa")], indirect=["x_fixture"])
 @pytest.mark.tetris
-def test_mock2(mock_m1_base, x, expected):
+def test_mock2(mock_m1_base, x_fixture, expected):
     # mock_m1_base = mocker.patch("tests.tetris.test_game.m1_base")
     mock_m1_base.return_value = 2
     assert m1() == 2
-    assert x == expected
+    assert x_fixture == expected
     mock_m1_base.assert_called_once()
 
 
@@ -114,9 +98,9 @@ def test_mock1(mocker):
 
 
 @pytest.mark.tetris
-@pytest.mark.parametrize("x, expected", [("a", "aaa")], indirect=["x"])
-def test_indirect(x, expected):
-    assert x == expected
+@pytest.mark.parametrize("x_fixture, expected", [("a", "aaa")], indirect=["x_fixture"])
+def test_indirect(x_fixture, expected):
+    assert x_fixture == expected
     # assert y == "b"
 
 
