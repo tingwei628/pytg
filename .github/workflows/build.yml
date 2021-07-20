@@ -40,7 +40,7 @@ jobs:
           path: ~/.cache/pypoetry
           key: ${{ matrix.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
-            ${{ matrix.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+            ${{ matrix.os }}-poetry-
 
       - name: Add Poetry to $PATH
         run: |
