@@ -57,15 +57,6 @@ jobs:
           restore-keys: |
             ${{ matrix.os }}-poetry-
 
-      # - name: Add Poetry to $PATH
-      #   run: |
-      #     echo "$HOME/.poetry/bin" >> $GITHUB_PATH
-
-      # - name: Configure poetry
-      #   run: |
-      #     poetry config virtualenvs.in-project false
-      #     poetry config virtualenvs.path ~/.cache/pypoetry
-
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: poetry install
