@@ -50,13 +50,12 @@ jobs:
 
       - name: Configure poetry
         run: |
-          poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
           poetry config virtualenvs.path ~/.cache/pypoetry
 
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: poetry install
+        run: poetry install --verbose
       
       - name: Test
         run: |
