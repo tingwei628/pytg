@@ -17,7 +17,7 @@ screen_height_mid = 0
 screen_width_mid = 0
 
 
-def menu(stdscr, which_game):
+def menu(stdscr, which_game, while_loop_off_in_unit_test):
     curses.curs_set(0)
     curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
     screen_height, screen_width = stdscr.getmaxyx()
@@ -91,6 +91,10 @@ def menu(stdscr, which_game):
         elif menu_stage == SUB_MENU_STAGE:
             display_menu(stdscr, sub_menu_current_index, SUB_MENU_LIST)
 
+        # only execute once in while loop
+        if while_loop_off_in_unit_test:
+            break
+
 
 def display_menu(stdscr, select_idx, menu_list):
     menu_len = len(menu_list)
@@ -107,7 +111,7 @@ def display_menu(stdscr, select_idx, menu_list):
 
 
 def menu_entry(which_game=NO_GAME):
-    curses.wrapper(menu, which_game)
+    curses.wrapper(menu, which_game, while_loop_off_in_unit_test=False)
 
 
 if __name__ == "__main__":
