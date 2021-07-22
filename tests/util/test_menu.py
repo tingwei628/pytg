@@ -10,33 +10,75 @@ from unittest import mock
 
 # from src.tetris.game import tetris_entry
 # from src.snake.game import snake_entry
-from src.util.menu import menu
+from src.util.menu import menu, SNAKE_GAME, TETRIS_GAME, SUB_MENU_STAGE, SUB_MENU_LIST
 
+# same import path of config.py in src/util/menu.py
+import util.config as config
+
+# from tests.util.conftest import cursesMock
 
 # mock patch: snake_entry, tetris_entry, display_menu
 
-# test different menu pos
+
+@mock.patch("src.tetris.game.tetris_entry", return_value=None)
+@mock.patch("src.snake.game.snake_entry", return_value=None)
+@mock.patch("src.util.menu.display_menu", return_value=None)
+@mock.patch(
+    "src.util.menu.curses",
+    return_value=mock.MagicMock(
+        **{
+            "curs_set.return_value": None,
+            "init_pair.return_value": None,
+            "KEY_DOWN": 258,
+            "KEY_UP": 259,
+            "KEY_LEFT": 260,
+            "KEY_RIGHT": 261,
+            "COLOR_BLACK": -1,
+            "COLOR_WHITE": -1,
+        }
+    ),
+)
+# @mock.patch("src.util.menu.menu_current_index", 0)
+# @mock.patch("src.util.menu.menu_stage", -1)
+@pytest.mark.parametrize(
+    "stdscrMock, which_game, expected_dict",
+    [
+        (
+            -1,
+            TETRIS_GAME,
+            {"menu_stage": SUB_MENU_STAGE, "sub_menu_current_index": SUB_MENU_LIST.index("Tetris")},
+        ),
+        (
+            -1,
+            SNAKE_GAME,
+            {"menu_stage": SUB_MENU_STAGE, "sub_menu_current_index": SUB_MENU_LIST.index("Snake")},
+        ),
+    ],
+    indirect=["stdscrMock"],
+)
 @pytest.mark.menu
-def test_menu():
-    pass
+def test_initial_game_stage(
+    # menu_stage,
+    # menu_current_index,
+    curses_mock,
+    display_menu_mock,
+    snake_entry_mock,
+    tetris_entry_mock,
+    stdscrMock,
+    which_game,
+    expected_dict,
+):
 
+    menu(stdscrMock, which_game, True)
+    # curses_mock.assert_called()
+    # display_menu_mock.assert_called()
+    # assert curses_mock.curs_set.call_count == 1
+    # assert curses_mock.init_pair.call_count == 1
+    # assert stdscrMock.getmaxyx.call_count == 1
+    # assert stdscrMock.getch.call_count == 1
 
-@mock.patch("src.tetris.game.tetris_entry", return_value=300)
-@mock.patch("src.snake.game.snake_entry", return_value=500)
-@mock.patch("src.util.menu.display_menu", return_value=300)
-@pytest.mark.parametrize("stdscrMock, expected_dict", [("a", "aaa")], indirect=["stdscrMock"])
-@pytest.mark.menu
-def test_initial_game_stage(display_menu_mock, snake_entry_mock, tetris_entry_mock, stdscrMock, expected_dict):
-    menu()
-    assert display_menu_mock() == 300
-    assert snake_entry_mock() == 500
-    assert tetris_entry_mock() == 300
-
-
-# test initial game
-# parameterize which_game, key
-# assert sub_menu_current_index
-# assert menu_stage
+    assert config.sub_menu_current_index == expected_dict["sub_menu_current_index"]
+    assert config.menu_stage == expected_dict["menu_stage"]
 
 
 @pytest.mark.menu
