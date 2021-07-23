@@ -24,7 +24,7 @@ SUB_MENU_LIST = ["Snake", "Tetris", "Exit"]
 # menu_stage = -1
 
 
-def menu(stdscr, which_game, while_loop_off_in_unit_test):
+def menu(stdscr, which_game, while_loop_off_in_unit_test, while_loop_count_in_unit_test):
     curses.curs_set(0)
     curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
     screen_height, screen_width = stdscr.getmaxyx()
@@ -49,6 +49,14 @@ def menu(stdscr, which_game, while_loop_off_in_unit_test):
     else:
         display_menu(stdscr, config.menu_current_index, MENU_LIST)
     while 1:
+        # for unit test
+        # if while_loop_off_in_unit_test:
+        #     break
+        if while_loop_off_in_unit_test and while_loop_count_in_unit_test == 0:
+            break
+        elif while_loop_off_in_unit_test and while_loop_count_in_unit_test > 0:
+            while_loop_count_in_unit_test = while_loop_count_in_unit_test - 1
+
         key = stdscr.getch()
         if key == curses.KEY_UP and config.menu_stage == MENU_STAGE:
             config.menu_current_index = (
@@ -107,9 +115,13 @@ def menu(stdscr, which_game, while_loop_off_in_unit_test):
         elif config.menu_stage == SUB_MENU_STAGE:
             display_menu(stdscr, config.sub_menu_current_index, SUB_MENU_LIST)
 
-        # only execute once in while loop
-        if while_loop_off_in_unit_test:
-            break
+        # for unit test
+        # if while_loop_off_in_unit_test:
+        #     break
+        # if while_loop_off_in_unit_test and while_loop_count_in_unit_test == 0:
+        #     break
+        # elif while_loop_off_in_unit_test and while_loop_count_in_unit_test > 0:
+        #     while_loop_count_in_unit_test = while_loop_count_in_unit_test - 1
 
 
 def display_menu(stdscr, select_idx, menu_list):
@@ -127,7 +139,7 @@ def display_menu(stdscr, select_idx, menu_list):
 
 
 def menu_entry(which_game=NO_GAME):
-    curses.wrapper(menu, which_game, while_loop_off_in_unit_test=False)
+    curses.wrapper(menu, which_game, while_loop_off_in_unit_test=False, while_loop_count_in_unit_test=0)
 
 
 if __name__ == "__main__":
