@@ -1,5 +1,6 @@
 import curses
 from random import choice
+import tetris.config as config
 
 """
 import util/block when executing game.py
@@ -24,43 +25,43 @@ support:
 1.Wall kick
 """
 
-TETRIS_GAME = 2
-BLOCK_EMPTY = 0
-BLOCK_FILLED = 1
+TETRIS_GAME = config.TETRIS_GAME
+BLOCK_EMPTY = config.BLOCK_EMPTY
+BLOCK_FILLED = config.BLOCK_FILLED
 
 # 2 is a moving block pivot
 
-KEY_ESC = 27  # exit
-KEY_SPACE = 32  # hard drop
-KEY_S = 115  # "s" pause/resume
-KEY_Z = 122  # "z" rotate couterclockwise
-KEY_ENTER = 10  # reset (restart)
+KEY_ESC = config.KEY_ESC  # exit
+KEY_SPACE = config.KEY_SPACE  # hard drop
+KEY_S = config.KEY_S  # "s" pause/resume
+KEY_Z = config.KEY_Z  # "z" rotate couterclockwise
+KEY_ENTER = config.KEY_ENTER  # reset (restart)
 
-ROTATION_CLOCKWISE = 1
-ROTATION_COUNTERCLOCKWISE = 2
-BLOCK_TYPE_I = 1  # I block
+ROTATION_CLOCKWISE = config.ROTATION_CLOCKWISE
+ROTATION_COUNTERCLOCKWISE = config.ROTATION_COUNTERCLOCKWISE
+BLOCK_TYPE_I = config.BLOCK_TYPE_I  # I block
 
-COLOR_PAIR_RANGE = (11, 16)
-BLOCK_TYPE_RANGE = (0, 7)
-BLOCK_ROTATION_RANGE = (0, 4)
+COLOR_PAIR_RANGE = config.COLOR_PAIR_RANGE
+BLOCK_TYPE_RANGE = config.BLOCK_TYPE_RANGE
+BLOCK_ROTATION_RANGE = config.BLOCK_ROTATION_RANGE
 
-SCORE_POS = (2, 5)
-STATUS_POS = (3, 5)
+SCORE_POS = config.SCORE_POS
+STATUS_POS = config.STATUS_POS
 
-START = 1
-STOP = 0
+START = config.START
+STOP = config.STOP
 
-block_stack = []
-block_map = []
-block_init_pos_map = []
-kick_map = {}
-block_lock = False  # is this block locked to be merged
-block_y_pos = 0
-block_x_pos = 0
-block_color = -1
-block_type = -1
-block_rotation = -1
-score = 0
+# block_stack = []
+# block_map = []
+# block_init_pos_map = []
+# kick_map = {}
+# block_lock = False  # is this block locked to be merged
+# block_y_pos = 0
+# block_x_pos = 0
+# block_color = -1
+# block_type = -1
+# block_rotation = -1
+# score = 0
 
 
 def _game(stdscr):
@@ -75,11 +76,11 @@ def _game(stdscr):
     box_top_left_y = 5
     game_status = START
     is_game_over = False
-    global block_map, block_init_pos_map, block_stack, kick_map
-    global block_lock
-    global block_color, block_type, block_rotation
-    global block_y_pos, block_x_pos
-    global score
+    # global block_map, block_init_pos_map, block_stack, kick_map
+    # global block_lock
+    # global block_color, block_type, block_rotation
+    # global block_y_pos, block_x_pos
+    # global score
     # screen_height, screen_width = stdscr.getmaxyx()
     # screen_height_mid = screen_height // 2
     # screen_width_mid = screen_width // 2
@@ -100,11 +101,11 @@ def _game(stdscr):
     # set block empty color
     curses.init_pair(21, curses.COLOR_BLACK, curses.COLOR_BLACK)
 
-    block_map = mod_block.get_total_blocks()
-    block_init_pos_map = mod_block.get_block_init_position(
+    config.block_map = mod_block.get_total_blocks()
+    config.block_init_pos_map = mod_block.get_block_init_position(
         box_in_top_left[0], (box_in_bottom_right[1] + box_in_top_left[1]) // 2
     )
-    kick_map = mod_block.get_kick_map()
+    config.kick_map = mod_block.get_kick_map()
 
     # set block stack
     _set_block_stack(box_in_top_left, box_in_bottom_right)
@@ -122,11 +123,11 @@ def _game(stdscr):
 
     _draw_block(
         stdscr,
-        (block_type, block_rotation),
-        (block_type, block_rotation),
-        curses.color_pair(block_color),
-        (block_y_pos, block_x_pos),
-        (block_y_pos, block_x_pos),
+        (config.block_type, config.block_rotation),
+        (config.block_type, config.block_rotation),
+        curses.color_pair(config.block_color),
+        (config.block_y_pos, config.block_x_pos),
+        (config.block_y_pos, config.block_x_pos),
     )
 
     while 1:
@@ -165,7 +166,7 @@ def _game(stdscr):
 
             # reset block
             _set_block()
-            block_lock = False
+            config.block_lock = False
 
             # draw border
             _rectangle(stdscr, box_top_left[0], box_top_left[1], box_bottom_right[0], box_bottom_right[1])
@@ -174,11 +175,11 @@ def _game(stdscr):
             # draw new block
             _draw_block(
                 stdscr,
-                (block_type, block_rotation),
-                (block_type, block_rotation),
-                curses.color_pair(block_color),
-                (block_y_pos, block_x_pos),
-                (block_y_pos, block_x_pos),
+                (config.block_type, config.block_rotation),
+                (config.block_type, config.block_rotation),
+                curses.color_pair(config.block_color),
+                (config.block_y_pos, config.block_x_pos),
+                (config.block_y_pos, config.block_x_pos),
             )
             # reset score
             _set_score(stdscr, 0)
@@ -195,150 +196,152 @@ def _game(stdscr):
             block_pos_next = _move_block(
                 box_in_top_left,
                 box_in_bottom_right,
-                (block_type, block_rotation),
-                (block_y_pos, block_x_pos),
-                (block_y_pos, block_x_pos + 1),
+                (config.block_type, config.block_rotation),
+                (config.block_y_pos, config.block_x_pos),
+                (config.block_y_pos, config.block_x_pos + 1),
             )
             _draw_block(
                 stdscr,
-                (block_type, block_rotation),
-                (block_type, block_rotation),
-                curses.color_pair(block_color),
-                (block_y_pos, block_x_pos),
+                (config.block_type, config.block_rotation),
+                (config.block_type, config.block_rotation),
+                curses.color_pair(config.block_color),
+                (config.block_y_pos, config.block_x_pos),
                 block_pos_next,
             )
-            block_x_pos = block_pos_next[1]
+            config.block_x_pos = block_pos_next[1]
         elif key == curses.KEY_LEFT:
             # move left
             block_pos_next = _move_block(
                 box_in_top_left,
                 box_in_bottom_right,
-                (block_type, block_rotation),
-                (block_y_pos, block_x_pos),
-                (block_y_pos, block_x_pos - 1),
+                (config.block_type, config.block_rotation),
+                (config.block_y_pos, config.block_x_pos),
+                (config.block_y_pos, config.block_x_pos - 1),
             )
             _draw_block(
                 stdscr,
-                (block_type, block_rotation),
-                (block_type, block_rotation),
-                curses.color_pair(block_color),
-                (block_y_pos, block_x_pos),
+                (config.block_type, config.block_rotation),
+                (config.block_type, config.block_rotation),
+                curses.color_pair(config.block_color),
+                (config.block_y_pos, config.block_x_pos),
                 block_pos_next,
             )
-            block_x_pos = block_pos_next[1]
+            config.block_x_pos = block_pos_next[1]
         elif key == curses.KEY_DOWN:
             # move down
             block_pos_next = _move_block(
                 box_in_top_left,
                 box_in_bottom_right,
-                (block_type, block_rotation),
-                (block_y_pos, block_x_pos),
-                (block_y_pos + 1, block_x_pos),
+                (config.block_type, config.block_rotation),
+                (config.block_y_pos, config.block_x_pos),
+                (config.block_y_pos + 1, config.block_x_pos),
             )
 
             _draw_block(
                 stdscr,
-                (block_type, block_rotation),
-                (block_type, block_rotation),
-                curses.color_pair(block_color),
-                (block_y_pos, block_x_pos),
+                (config.block_type, config.block_rotation),
+                (config.block_type, config.block_rotation),
+                curses.color_pair(config.block_color),
+                (config.block_y_pos, config.block_x_pos),
                 block_pos_next,
             )
 
-            if block_y_pos == block_pos_next[0] and not block_lock:
-                block_lock = True
-            block_y_pos = block_pos_next[0]
+            if config.block_y_pos == block_pos_next[0] and not config.block_lock:
+                config.block_lock = True
+            config.block_y_pos = block_pos_next[0]
         elif key == KEY_SPACE:
             # directly move down to block stack
             block_pos_next = _block_pos_in_block_stack(
                 box_in_top_left,
                 box_in_bottom_right,
-                (block_type, block_rotation),
-                (block_y_pos, block_x_pos),
+                (config.block_type, config.block_rotation),
+                (config.block_y_pos, config.block_x_pos),
             )
             _draw_block(
                 stdscr,
-                (block_type, block_rotation),
-                (block_type, block_rotation),
-                curses.color_pair(block_color),
-                (block_y_pos, block_x_pos),
+                (config.block_type, config.block_rotation),
+                (config.block_type, config.block_rotation),
+                curses.color_pair(config.block_color),
+                (config.block_y_pos, config.block_x_pos),
                 block_pos_next,
             )
-            block_y_pos = block_pos_next[0]
+            config.block_y_pos = block_pos_next[0]
 
             # avoid another new block to fall fast
-            if not block_lock:
-                block_lock = True
+            if not config.block_lock:
+                config.block_lock = True
         elif key == curses.KEY_UP:
-            block_rotation_next = 0 if block_rotation == 3 else block_rotation + 1
+            block_rotation_next = 0 if config.block_rotation == 3 else config.block_rotation + 1
             # rotate collision with block stack
             block_pos_next = _rotate_block(
-                (1, 1 if BLOCK_TYPE_I != block_type else 2),
+                (1, 1 if BLOCK_TYPE_I != config.block_type else 2),
                 box_in_top_left,
                 box_in_bottom_right,
-                block_rotation,
-                (block_type, block_rotation_next),
-                (block_y_pos, block_x_pos),
+                config.block_rotation,
+                (config.block_type, block_rotation_next),
+                (config.block_y_pos, config.block_x_pos),
             )
             block_rotation_next = block_pos_next[2]
             _draw_block(
                 stdscr,
-                (block_type, block_rotation),
-                (block_type, block_rotation_next),
-                curses.color_pair(block_color),
-                (block_y_pos, block_x_pos),
+                (config.block_type, config.block_rotation),
+                (config.block_type, block_rotation_next),
+                curses.color_pair(config.block_color),
+                (config.block_y_pos, config.block_x_pos),
                 (block_pos_next[0], block_pos_next[1]),
             )
-            block_rotation = block_rotation_next
-            block_y_pos = block_pos_next[0]
-            block_x_pos = block_pos_next[1]
+            config.block_rotation = block_rotation_next
+            config.block_y_pos = block_pos_next[0]
+            config.block_x_pos = block_pos_next[1]
         elif key == KEY_Z:
-            block_rotation_next = 3 if (block_rotation == 0) else block_rotation - 1
+            block_rotation_next = 3 if (config.block_rotation == 0) else config.block_rotation - 1
             # rotate collide block stack
             block_pos_next = _rotate_block(
-                (2, 1 if BLOCK_TYPE_I != block_type else 2),
+                (2, 1 if BLOCK_TYPE_I != config.block_type else 2),
                 box_in_top_left,
                 box_in_bottom_right,
-                block_rotation,
-                (block_type, block_rotation_next),
-                (block_y_pos, block_x_pos),
+                config.block_rotation,
+                (config.block_type, block_rotation_next),
+                (config.block_y_pos, config.block_x_pos),
             )
             block_rotation_next = block_pos_next[2]
             _draw_block(
                 stdscr,
-                (block_type, block_rotation),
-                (block_type, block_rotation_next),
-                curses.color_pair(block_color),
-                (block_y_pos, block_x_pos),
+                (config.block_type, config.block_rotation),
+                (config.block_type, block_rotation_next),
+                curses.color_pair(config.block_color),
+                (config.block_y_pos, config.block_x_pos),
                 (block_pos_next[0], block_pos_next[1]),
             )
-            block_rotation = block_rotation_next
-            block_y_pos = block_pos_next[0]
-            block_x_pos = block_pos_next[1]
+            config.block_rotation = block_rotation_next
+            config.block_y_pos = block_pos_next[0]
+            config.block_x_pos = block_pos_next[1]
         else:
             continue
 
         # if DROP DONE
-        if block_lock:
+        if config.block_lock:
             # merge block stack
             after_erged_score = _merge_block_stack(
                 stdscr,
                 box_in_top_left,
                 box_in_bottom_right,
-                (block_type, block_rotation),
-                (block_y_pos, block_x_pos),
-                curses.color_pair(block_color),
+                (config.block_type, config.block_rotation),
+                (config.block_y_pos, config.block_x_pos),
+                curses.color_pair(config.block_color),
             )
 
             # update score
-            score += after_erged_score
-            _set_score(stdscr, score)
+            config.score += after_erged_score
+            _set_score(stdscr, config.score)
 
             # define next block
             block_init_pos = _set_block()
 
             # check if game over
-            is_game_over = _is_game_over(box_in_top_left, (block_type, block_rotation), (block_y_pos, block_x_pos))
+            is_game_over = _is_game_over(
+                box_in_top_left, (config.block_type, config.block_rotation), (config.block_y_pos, config.block_x_pos)
+            )
 
             if is_game_over:
                 # update game status
@@ -350,8 +353,8 @@ def _game(stdscr):
                 # draw part of block
                 _draw_block_if_game_over(
                     stdscr,
-                    (block_type, block_rotation),
-                    curses.color_pair(block_color),
+                    (config.block_type, config.block_rotation),
+                    curses.color_pair(config.block_color),
                     block_init_pos,
                 )
 
@@ -359,13 +362,13 @@ def _game(stdscr):
                 # draw next new block
                 _draw_block(
                     stdscr,
-                    (block_type, block_rotation),
-                    (block_type, block_rotation),
-                    curses.color_pair(block_color),
+                    (config.block_type, config.block_rotation),
+                    (config.block_type, config.block_rotation),
+                    curses.color_pair(config.block_color),
                     block_init_pos,
                     block_init_pos,
                 )
-                block_lock = False
+                config.block_lock = False
 
 
 def _set_status(stdscr, status: str):
@@ -379,8 +382,8 @@ def _set_score(stdscr, score: int):
 
 
 def _set_block_stack(box_in_top_left: tuple, box_in_bottom_right: tuple):
-    global block_stack
-    block_stack = [
+    # global block_stack
+    config.block_stack = [
         [
             (_block_y, _block_x, BLOCK_EMPTY, curses.color_pair(21))
             for _block_x in range(box_in_top_left[1], box_in_bottom_right[1] + 1)
@@ -390,21 +393,21 @@ def _set_block_stack(box_in_top_left: tuple, box_in_bottom_right: tuple):
 
 
 def _set_block() -> tuple:
-    global block_init_pos_map, block_y_pos, block_x_pos
-    global block_color, block_type, block_type, block_rotation
-    block_color = choice(range(*COLOR_PAIR_RANGE))
-    block_type = choice(range(*BLOCK_TYPE_RANGE))
-    block_rotation = choice(range(*BLOCK_ROTATION_RANGE))
-    block_init_pos = block_init_pos_map[block_type][block_rotation]
-    block_y_pos = block_init_pos[0]  # block(5x5) top left y
-    block_x_pos = block_init_pos[1]  # block(5x5) top left x
+    # global block_init_pos_map, block_y_pos, block_x_pos
+    # global block_color, block_type, block_type, block_rotation
+    config.block_color = choice(range(*COLOR_PAIR_RANGE))
+    config.block_type = choice(range(*BLOCK_TYPE_RANGE))
+    config.block_rotation = choice(range(*BLOCK_ROTATION_RANGE))
+    block_init_pos = config.block_init_pos_map[config.block_type][config.block_rotation]
+    config.block_y_pos = block_init_pos[0]  # block(5x5) top left y
+    config.block_x_pos = block_init_pos[1]  # block(5x5) top left x
     return block_init_pos
 
 
 def _draw_block_stack(stdscr, box_in_top_left: tuple, box_in_bottom_right: tuple):
     for _idx_y in range(0, box_in_bottom_right[0] + 1 - box_in_top_left[0]):
         for _idx_x in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
-            _block = block_stack[_idx_y][_idx_x]
+            _block = config.block_stack[_idx_y][_idx_x]
             stdscr.addstr(_block[0], _block[1], str(_block[2]), _block[3])
 
 
@@ -414,8 +417,8 @@ def _draw_block(
     _block_type = block_setup[0]
     _block_rotation = block_setup[1]
     _block_rotation_next = block_setup_next[1]
-    _block = block_map[_block_type][_block_rotation]
-    _block_next = block_map[_block_type][_block_rotation_next]
+    _block = config.block_map[_block_type][_block_rotation]
+    _block_next = config.block_map[_block_type][_block_rotation_next]
     _block_len = len(_block)  # as the same as length of block_next
 
     # clear previous block
@@ -434,7 +437,7 @@ def _draw_block_if_game_over(stdscr, block_setup: tuple, block_color, block_pos:
 
     _block_type = block_setup[0]
     _block_rotation = block_setup[1]
-    _block = block_map[_block_type][_block_rotation]
+    _block = config.block_map[_block_type][_block_rotation]
     _block_len = len(_block)
 
     for _y in range(_block_len):
@@ -506,7 +509,7 @@ def _rotate_block(
     _block_rotation_next = block_setup[1]
     _block_y_pos_next = block_pos_next[0]
     _block_x_pos_next = block_pos_next[1]
-    _variant_pos = kick_map[(rotation_key[0], rotation_key[1])][_block_rotation_next]
+    _variant_pos = config.kick_map[(rotation_key[0], rotation_key[1])][_block_rotation_next]
     WALL_KICK_TEST_NUM = 5
 
     for test in range(WALL_KICK_TEST_NUM):
@@ -528,14 +531,14 @@ def _rotate_block(
 def _is_game_over(box_in_top_left: tuple, block_setup: tuple, block_pos: tuple) -> bool:
     _block_type = block_setup[0]
     _block_rotation = block_setup[1]
-    _block = block_map[_block_type][_block_rotation]
+    _block = config.block_map[_block_type][_block_rotation]
     _block_len = len(_block)
     _block_y_pos = block_pos[0]
     _block_x_pos = block_pos[1]
     for _y in range(_block_len):
         for _x in range(_block_len):
             if _block[_y][_x] > BLOCK_EMPTY and (
-                block_stack[_block_y_pos + _y - box_in_top_left[0]][_block_x_pos + _x - box_in_top_left[1]][2]
+                config.block_stack[_block_y_pos + _y - box_in_top_left[0]][_block_x_pos + _x - box_in_top_left[1]][2]
                 > BLOCK_EMPTY
             ):
                 return True
@@ -551,7 +554,7 @@ def _is_block_pos_overlap(
 ):
     _block_type = block_setup[0]
     _block_rotation_next = block_setup[1]
-    _block_next = block_map[_block_type][_block_rotation_next]
+    _block_next = config.block_map[_block_type][_block_rotation_next]
     _block_len = len(_block_next)
     _block_y_pos_next = block_pos_next[0]
     _block_x_pos_next = block_pos_next[1]
@@ -564,7 +567,7 @@ def _is_block_pos_overlap(
                 or box_in_top_left[1] > (_block_x_pos_next + _x)
                 or box_in_bottom_right[0] < (_block_y_pos_next + _y)
                 or box_in_bottom_right[1] < (_block_x_pos_next + _x)
-                or block_stack[_block_y_pos_next + _y - box_in_top_left[0]][
+                or config.block_stack[_block_y_pos_next + _y - box_in_top_left[0]][
                     _block_x_pos_next + _x - box_in_top_left[1]
                 ][2]
                 > BLOCK_EMPTY
@@ -579,7 +582,7 @@ def _merge_block_stack(
 ):
     _block_type = block_setup[0]
     _block_rotation = block_setup[1]
-    _block = block_map[_block_type][_block_rotation]
+    _block = config.block_map[_block_type][_block_rotation]
     _block_len = len(_block)
     _block_y_pos = block_pos[0]
     _block_x_pos = block_pos[1]
@@ -590,13 +593,13 @@ def _merge_block_stack(
             _temp_y = _block_y_pos + _y - box_in_top_left[0]
             _temp_x = _block_x_pos + _x - box_in_top_left[1]
 
-            if _block[_y][_x] > BLOCK_EMPTY and (block_stack[_temp_y][_temp_x][2] == BLOCK_EMPTY):
+            if _block[_y][_x] > BLOCK_EMPTY and (config.block_stack[_temp_y][_temp_x][2] == BLOCK_EMPTY):
 
                 """
                 tuple does not support item assignment
                 it needs another new tuple to udpate
                 """
-                block_stack[_temp_y][_temp_x] = (
+                config.block_stack[_temp_y][_temp_x] = (
                     _temp_y + box_in_top_left[0],
                     _temp_x + box_in_top_left[1],
                     BLOCK_FILLED,
@@ -611,23 +614,23 @@ def _merge_block_stack(
     _dy = box_in_bottom_right[0]
     while _dy > box_in_top_left[0]:
         for _dx in range(0, _block_stack_x_end):
-            if block_stack[_dy - box_in_top_left[0]][_dx][2] > BLOCK_EMPTY:
+            if config.block_stack[_dy - box_in_top_left[0]][_dx][2] > BLOCK_EMPTY:
                 _line_x_num += 1
 
         if _line_x_num == _block_stack_x_end:
             _score_line += 1
             for _y in range(_dy, box_in_top_left[0], -1):
                 for _x in range(0, _block_stack_x_end):
-                    _moved_temp = block_stack[_y - box_in_top_left[0] - 1][_x]
+                    _moved_temp = config.block_stack[_y - box_in_top_left[0] - 1][_x]
                     # move down
-                    block_stack[_y - box_in_top_left[0]][_x] = (
+                    config.block_stack[_y - box_in_top_left[0]][_x] = (
                         _y,
                         _moved_temp[1],
                         _moved_temp[2],
                         _moved_temp[3],
                     )
                     # clear original
-                    block_stack[_y - box_in_top_left[0] - 1][_x] = (
+                    config.block_stack[_y - box_in_top_left[0] - 1][_x] = (
                         _moved_temp[0],
                         _moved_temp[1],
                         BLOCK_EMPTY,
@@ -640,7 +643,7 @@ def _merge_block_stack(
     # draw block stack after deleting and moving down
     for _idx_y in range(0, box_in_bottom_right[0] + 1 - box_in_top_left[0]):
         for _idx_x in range(0, box_in_bottom_right[1] + 1 - box_in_top_left[1]):
-            _block = block_stack[_idx_y][_idx_x]
+            _block = config.block_stack[_idx_y][_idx_x]
             stdscr.addstr(_block[0], _block[1], str(_block[2]), _block[3])
 
     return _score_line

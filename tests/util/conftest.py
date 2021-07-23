@@ -32,7 +32,6 @@ curses.KEY_LEFT = 260
 #     return _cursesMock
 
 
-# request.params =>
 # @pytest.fixture(scope="module")
 @pytest.fixture()
 def stdscrMock(mocker, request):

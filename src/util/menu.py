@@ -50,8 +50,6 @@ def menu(stdscr, which_game, while_loop_off_in_unit_test, while_loop_count_in_un
         display_menu(stdscr, config.menu_current_index, MENU_LIST)
     while 1:
         # for unit test
-        # if while_loop_off_in_unit_test:
-        #     break
         if while_loop_off_in_unit_test and while_loop_count_in_unit_test == 0:
             break
         elif while_loop_off_in_unit_test and while_loop_count_in_unit_test > 0:
@@ -114,14 +112,6 @@ def menu(stdscr, which_game, while_loop_off_in_unit_test, while_loop_count_in_un
         # display sub menu
         elif config.menu_stage == SUB_MENU_STAGE:
             display_menu(stdscr, config.sub_menu_current_index, SUB_MENU_LIST)
-
-        # for unit test
-        # if while_loop_off_in_unit_test:
-        #     break
-        # if while_loop_off_in_unit_test and while_loop_count_in_unit_test == 0:
-        #     break
-        # elif while_loop_off_in_unit_test and while_loop_count_in_unit_test > 0:
-        #     while_loop_count_in_unit_test = while_loop_count_in_unit_test - 1
 
 
 def display_menu(stdscr, select_idx, menu_list):
