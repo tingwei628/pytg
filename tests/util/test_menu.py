@@ -5,10 +5,26 @@ pytest -m menu -s
 """
 import pytest
 from unittest import mock
-from src.util.menu import menu, NO_GAME, SNAKE_GAME, TETRIS_GAME, MENU_STAGE, SUB_MENU_STAGE, SUB_MENU_LIST
+
+
+from sys import path
+from os.path import join, dirname
+
+path.append(join(dirname(__file__), "../../src"))
+
+from util.menu import menu
+
+# import src.util.menu as menu
 
 # same import path of config.py in src/util/menu.py
 import util.config as config
+
+NO_GAME = config.NO_GAME
+SNAKE_GAME = config.SNAKE_GAME
+TETRIS_GAME = config.TETRIS_GAME
+MENU_STAGE = config.MENU_STAGE
+SUB_MENU_STAGE = config.SUB_MENU_STAGE
+SUB_MENU_LIST = config.SUB_MENU_LIST
 
 __curses_dict = {
     "curs_set.return_value": None,
@@ -28,11 +44,11 @@ def setup_function():
     config.menu_stage = -1
 
 
-@mock.patch("src.util.menu.tetris_entry", return_value=None)
-@mock.patch("src.util.menu.snake_entry", return_value=None)
-@mock.patch("src.util.menu.display_menu", return_value=None)
+@mock.patch("util.menu.tetris_entry", return_value=None)
+@mock.patch("util.menu.snake_entry", return_value=None)
+@mock.patch("util.menu.display_menu", return_value=None)
 @mock.patch(
-    "src.util.menu.curses",
+    "util.menu.curses",
     return_value=mock.MagicMock(**__curses_dict),
 )
 @pytest.mark.parametrize(
@@ -67,11 +83,11 @@ def test_initial_game_stage(
     assert config.menu_stage == expected_dict["menu_stage"]
 
 
-@mock.patch("src.util.menu.tetris_entry", return_value=None)
-@mock.patch("src.util.menu.snake_entry", return_value=None)
-@mock.patch("src.util.menu.display_menu", return_value=None)
+@mock.patch("util.menu.tetris_entry", return_value=None)
+@mock.patch("util.menu.snake_entry", return_value=None)
+@mock.patch("util.menu.display_menu", return_value=None)
 @mock.patch(
-    "src.util.menu.curses",
+    "util.menu.curses",
     return_value=mock.MagicMock(**__curses_dict),
 )
 @pytest.mark.parametrize(
@@ -101,11 +117,11 @@ def test_menu_arrowkey_moving(
     assert config.menu_stage == MENU_STAGE
 
 
-@mock.patch("src.util.menu.tetris_entry", return_value=None)
-@mock.patch("src.util.menu.snake_entry", return_value=None)
-@mock.patch("src.util.menu.display_menu", return_value=None)
+@mock.patch("util.menu.tetris_entry", return_value=None)
+@mock.patch("util.menu.snake_entry", return_value=None)
+@mock.patch("util.menu.display_menu", return_value=None)
 @mock.patch(
-    "src.util.menu.curses",
+    "util.menu.curses",
     return_value=mock.MagicMock(**__curses_dict),
 )
 @pytest.mark.parametrize(
@@ -125,14 +141,14 @@ def test_enter_sub_menu(
     assert config.menu_stage == SUB_MENU_STAGE
 
 
-@mock.patch("src.util.menu.tetris_entry", return_value=None)
-@mock.patch("src.util.menu.snake_entry", return_value=None)
-@mock.patch("src.util.menu.display_menu", return_value=None)
+@mock.patch("util.menu.tetris_entry", return_value=None)
+@mock.patch("util.menu.snake_entry", return_value=None)
+@mock.patch("util.menu.display_menu", return_value=None)
 @mock.patch(
-    "src.util.menu.curses",
+    "util.menu.curses",
     return_value=mock.MagicMock(**__curses_dict),
 )
-@mock.patch("src.util.menu.config.sub_menu_current_index", SUB_MENU_LIST.index("Snake"))
+@mock.patch("util.menu.config.sub_menu_current_index", SUB_MENU_LIST.index("Snake"))
 @pytest.mark.parametrize(
     "stdscrMock",
     [(10)],  # KEY_ENTER
@@ -152,14 +168,14 @@ def test_load_snake_game_called(
     snake_entry_mock.assert_called_once()
 
 
-@mock.patch("src.util.menu.tetris_entry", return_value=None)
-@mock.patch("src.util.menu.snake_entry", return_value=None)
-@mock.patch("src.util.menu.display_menu", return_value=None)
+@mock.patch("util.menu.tetris_entry", return_value=None)
+@mock.patch("util.menu.snake_entry", return_value=None)
+@mock.patch("util.menu.display_menu", return_value=None)
 @mock.patch(
-    "src.util.menu.curses",
+    "util.menu.curses",
     return_value=mock.MagicMock(**__curses_dict),
 )
-@mock.patch("src.util.menu.config.sub_menu_current_index", SUB_MENU_LIST.index("Tetris"))
+@mock.patch("util.menu.config.sub_menu_current_index", SUB_MENU_LIST.index("Tetris"))
 @pytest.mark.parametrize(
     "stdscrMock",
     [(10)],  # KEY_ENTER

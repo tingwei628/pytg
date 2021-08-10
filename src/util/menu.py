@@ -8,15 +8,15 @@ import util.config as config
 
 # from util import *
 
-NO_GAME = 0
-SNAKE_GAME = 1
-TETRIS_GAME = 2
-KEY_ENTER = 10
-KEY_ESC = 27
-MENU_STAGE = 0
-SUB_MENU_STAGE = 1
-MENU_LIST = ["Select Games", "Exit"]
-SUB_MENU_LIST = ["Snake", "Tetris", "Exit"]
+NO_GAME = config.NO_GAME
+SNAKE_GAME = config.SNAKE_GAME
+TETRIS_GAME = config.TETRIS_GAME
+KEY_ENTER = config.KEY_ENTER
+KEY_ESC = config.KEY_ESC
+MENU_STAGE = config.MENU_STAGE
+SUB_MENU_STAGE = config.SUB_MENU_STAGE
+MENU_LIST = config.MENU_LIST
+SUB_MENU_LIST = config.SUB_MENU_LIST
 # menu_current_index = 0
 # sub_menu_current_index = 0
 # screen_height_mid = 0

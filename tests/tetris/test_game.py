@@ -1,4 +1,4 @@
-from src.tetris.game import tetris_entry, _move_block
+# from src.tetris.game import tetris_entry, _move_block
 
 # from pytest_mock import mocker, MockFixture
 import pytest

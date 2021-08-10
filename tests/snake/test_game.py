@@ -1,4 +1,4 @@
-from src.snake.game import snake_entry
+# from src.snake.game import snake_entry
 import pytest
 
 
