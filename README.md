@@ -24,6 +24,11 @@ python src/main.py
 ```sh
 pytest
 ```
+## issues
+_curses.error: init_color() returned ERR \
+`export TERM=xterm-256color`
+
+
 
 ### Acknowledgements
 
