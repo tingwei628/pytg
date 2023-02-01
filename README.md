@@ -9,6 +9,9 @@ terminal based game in python
 python src/main.py
 ```
 
+### NOTE: On Windows, please install windows-curses before the execution
+`pip install windows-curses`
+
 ## Feature
 - Snake
 - Tetris
